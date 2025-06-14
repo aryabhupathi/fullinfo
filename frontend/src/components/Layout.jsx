@@ -1,162 +1,171 @@
 import React from "react";
-import { Link, Outlet } from "react-router-dom";
-import { FaHome } from "react-icons/fa";
+import { Link, Outlet, useMatch, useNavigate } from "react-router-dom";
+import { FaHome, FaSuitcase, FaBus, FaStar, FaUser } from "react-icons/fa";
 import { MdAdd } from "react-icons/md";
-import { FaSuitcase } from "react-icons/fa6";
-import { FaBus } from "react-icons/fa6";
 import { RiFileEditFill } from "react-icons/ri";
-import { FaStar } from "react-icons/fa";
 import { IoSettingsOutline } from "react-icons/io5";
-import { FaUser } from "react-icons/fa";
-const Layout = () => {
+const NavLink = ({ to, icon: Icon, children }) => {
+  const isActive = useMatch(to);
   return (
-    <div>
-      <div className="container">
-        <div className="d-flex justify-content-between py-1 bg-light text-dark small">
-          <div>Technical Help - +91-8792462607</div>
-          <div>login</div>
+    <Link
+      to={to}
+      className={`nav-link d-flex align-items-center gap-1 ${
+        isActive ? "fw-bold text-warning" : "text-white"
+      }`}
+      style={{
+        transition: "all 0.2s ease",
+      }}
+    >
+      <Icon />
+      {children}
+    </Link>
+  );
+};
+const DropdownMenu = ({ items, bgColor = "#D2B0BD" }) => {
+  return (
+    <ul className="dropdown-menu" style={{ backgroundColor: bgColor }}>
+      {items.map(({ label, to, onClick }, idx) => (
+        <li key={idx}>
+          <Link
+            to={to}
+            className="dropdown-item"
+            style={{ transition: "background 0.2s ease" }}
+            onMouseEnter={(e) => (e.target.style.backgroundColor = "#c3a1b0")}
+            onMouseLeave={(e) => (e.target.style.backgroundColor = bgColor)}
+            onClick={onClick}
+          >
+            {label}
+          </Link>
+        </li>
+      ))}
+    </ul>
+  );
+};
+const Layout = () => {
+  const navigate = useNavigate();
+  const name = localStorage.getItem("name");
+  const handleLogout = () => {
+    localStorage.clear();
+    navigate("/");
+  };
+  return (
+    <div className="container">
+      <div className="py-1 bg-light text-dark">
+        <div className="d-flex justify-content-between align-items-center">
+          <div>
+            <strong>Technical Help:</strong> +91-6303460916
+          </div>
+          <div>Welcome, {name || "Guest"}</div>
         </div>
       </div>
-      <nav className="navbar navbar-expand-lg navbar-dark bg-dark w-100">
+      <nav
+        className="navbar navbar-expand-lg"
+        style={{ backgroundColor: "#6B5B95" }}
+      >
         <div className="container">
-          <span className="navbar-brand fw-bold">Admin SBIC-UP</span>
+          <span className="navbar-brand fw-bold text-white fs-4">
+            Admin SBIC-UP
+          </span>
           <button
             className="navbar-toggler"
             type="button"
             data-bs-toggle="collapse"
             data-bs-target="#navbarNav"
+            aria-controls="navbarNav"
+            aria-expanded="false"
+            aria-label="Toggle navigation"
           >
-            <span className="navbar-toggler-icon"></span>
+            <span className="navbar-toggler-icon" />
           </button>
           <div
             className="collapse navbar-collapse justify-content-end"
             id="navbarNav"
           >
-            <ul className="navbar-nav">
+            <ul className="navbar-nav d-flex align-items-center gap-1">
               <li className="nav-item">
-                <Link className="nav-link" to="/dashboard">
-                  <FaHome /> Dashboard
-                </Link>
+                <NavLink to="/dashboard" icon={FaHome}>
+                  Dashboard
+                </NavLink>
               </li>
               <li className="nav-item dropdown">
-                <Link
-                  className="nav-link dropdown-toggle"
-                  href="#"
-                  role="button"
+                <button
+                  className="nav-link dropdown-toggle text-white bg-transparent border-0"
                   data-bs-toggle="dropdown"
                 >
                   <MdAdd /> Admission
-                </Link>
-                <ul className="dropdown-menu">
-                  <li>
-                    <Link className="dropdown-item" to="/admission/new">
-                      New Admission
-                    </Link>
-                  </li>
-                  <li>
-                    <Link className="dropdown-item" to="/admission/list">
-                      Admission List
-                    </Link>
-                  </li>
-                </ul>
+                </button>
+                <DropdownMenu
+                  items={[
+                    { label: "New Admission", to: "/admission/new" },
+                    { label: "Admission List", to: "/admission/list" },
+                  ]}
+                />
               </li>
               <li className="nav-item dropdown">
-                <Link
-                  className="nav-link dropdown-toggle"
-                  href="#"
-                  role="button"
+                <button
+                  className="nav-link dropdown-toggle text-white bg-transparent border-0"
                   data-bs-toggle="dropdown"
                 >
                   <FaSuitcase /> Fee Payment
-                </Link>
-                <ul className="dropdown-menu">
-                  <li>
-                    <Link className="dropdown-item" to="/fee_payment/pay">
-                      Pay Fees
-                    </Link>
-                  </li>
-                  <li>
-                    <Link className="dropdown-item" to="/fee_payment/history">
-                      Payment History
-                    </Link>
-                  </li>
-                </ul>
+                </button>
+                <DropdownMenu
+                  items={[
+                    { label: "Pay Fees", to: "/fee_payment/pay" },
+                    { label: "Payment History", to: "/fee_payment/history" },
+                  ]}
+                />
               </li>
               <li className="nav-item dropdown">
-                <Link
-                  className="nav-link dropdown-toggle"
-                  href="#"
-                  role="button"
+                <button
+                  className="nav-link dropdown-toggle text-white bg-transparent border-0"
                   data-bs-toggle="dropdown"
                 >
                   <FaBus /> Transport
-                </Link>
-                <ul className="dropdown-menu">
-                  <li>
-                    <Link className="dropdown-item" to="/transport/manage">
-                      Manage Transport
-                    </Link>
-                  </li>
-                  <li>
-                    <Link className="dropdown-item" to="/transport/users">
-                      Transport Users
-                    </Link>
-                  </li>
-                </ul>
+                </button>
+                <DropdownMenu
+                  items={[
+                    { label: "Manage Transport", to: "/transport/manage" },
+                    { label: "Transport Users", to: "/transport/users" },
+                  ]}
+                />
               </li>
               <li className="nav-item">
-                <Link className="nav-link" to="/exam">
-                  <RiFileEditFill /> Exam
-                </Link>
+                <NavLink to="/exam" icon={RiFileEditFill}>
+                  Exam
+                </NavLink>
               </li>
               <li className="nav-item">
-                <Link className="nav-link" to="/activity">
-                  <FaStar /> Activity
-                </Link>
+                <NavLink to="/activity" icon={FaStar}>
+                  Activity
+                </NavLink>
               </li>
               <li className="nav-item dropdown">
-                <Link
-                  className="nav-link dropdown-toggle"
-                  href="#"
-                  role="button"
+                <button
+                  className="nav-link dropdown-toggle text-white bg-transparent border-0"
                   data-bs-toggle="dropdown"
                 >
                   <IoSettingsOutline /> Admin
-                </Link>
-                <ul className="dropdown-menu">
-                  <li>
-                    <Link className="dropdown-item" to="/admin/users">
-                      User Management
-                    </Link>
-                  </li>
-                  <li>
-                    <Link className="dropdown-item" to="/admin/settings">
-                      Settings
-                    </Link>
-                  </li>
-                </ul>
+                </button>
+                <DropdownMenu
+                  items={[
+                    { label: "User Management", to: "/admin/users" },
+                    { label: "Settings", to: "/admin/settings" },
+                  ]}
+                />
               </li>
               <li className="nav-item dropdown">
-                <Link
-                  className="nav-link dropdown-toggle"
-                  href="#"
-                  role="button"
+                <button
+                  className="nav-link dropdown-toggle text-white bg-transparent border-0"
                   data-bs-toggle="dropdown"
                 >
                   <FaUser /> Account
-                </Link>
-                <ul className="dropdown-menu">
-                  <li>
-                    <Link className="dropdown-item" to="/account/profile">
-                      Profile
-                    </Link>
-                  </li>
-                  <li>
-                    <Link className="dropdown-item" to="/account/logout">
-                      Logout
-                    </Link>
-                  </li>
-                </ul>
+                </button>
+                <DropdownMenu
+                  items={[
+                    { label: "Profile", to: "/profile" },
+                    { label: "Logout", to: "/", onClick: handleLogout },
+                  ]}
+                />
               </li>
             </ul>
           </div>

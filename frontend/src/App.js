@@ -8,16 +8,18 @@ import AdmissionList from "./components/AdmissionList";
 import Admin from "./components/Admin";
 import TransportUsers from "./components/TransportUsers";
 import ManageTransport from "./components/ManageTransport";
-import Account from "./components/Account";
 import Activity from "./components/Activity";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import FeePaymentHistory from "./components/FeePaymentHistory";
+import Profile from "./components/Account/Profile";
+import Login from "./components/Account/Login";
 function App() {
   return (
     <BrowserRouter>
       <Routes>
+          <Route path="/" element={<Login />} />
         <Route path="/" element={<Layout />}>
-          <Route path="/" element={<Dashboard />} />
+          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/admission/new" element={<NewAdmission />} />
           <Route path="/admission/list" element={<AdmissionList />} />
           <Route path="/fee_payment/pay" element={<FeePayment />} />
@@ -26,7 +28,7 @@ function App() {
           <Route path="/transport/manage" element={<ManageTransport />} />
           <Route path="/exam" element={<Exam />} />
           <Route path="/admin" element={<Admin />} />
-          <Route path="/account" element={<Account />} />
+          <Route path="/profile" element={<Profile />} />
           <Route path="/activity" element={<Activity />} />
         </Route>
       </Routes>

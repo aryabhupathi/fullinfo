@@ -12,19 +12,28 @@
 }
 .App-header {
   background-color: #282c34;
-  min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
   color: white;
 }
 .App-link {
   color: #61dafb;
 }
-.nav-item {
-  padding-right: 15px;
+.nav-link{
+  color: red;
+}
+.datepicker {
+    width: 100%;
+}
+.card:focus-within {
+  box-shadow: 0 0 0.5rem 0.25rem rgba(13, 110, 253, 0.25); /* Bootstrap primary */
+  border: 1px solid #0d6efd;
+}
+
+th{
+  white-space: nowrap;
 }
 @keyframes App-logo-spin {
   from {
