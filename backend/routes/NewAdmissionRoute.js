@@ -4,7 +4,8 @@ const NewAdmission = require("../schemas/StudentAdmissionSchema");
 router.get("/students", async (req, res) => {
   try {
     const students = await NewAdmission.find();
-    res.status(200).json(students);
+    const count = students.length;
+    res.status(200).json({count:count,students:students});
   } catch (err) {
     res.status(500)
       .json({ message: "Failed to fetch users", error: err.message });

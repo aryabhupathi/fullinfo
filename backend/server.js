@@ -20,6 +20,12 @@ const Login = require("./routes/LoginRoute");
 app.use("/auth", Login);
 const NewAdmission = require("./routes/NewAdmissionRoute");
 app.use("/admission", NewAdmission);
+const Transport = require("./routes/TransportRoute");
+app.use("/transport", Transport);
+const Exams = require("./routes/ExamRoute");
+app.use("/exam", Exams);
+const Activity = require("./routes/ActivityRoute");
+app.use("/activity", Activity);
 app.listen(PORT, () => {
   console.log(`Server is live on port ${PORT}`);
 });
