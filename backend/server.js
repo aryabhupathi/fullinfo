@@ -26,6 +26,8 @@ const Exams = require("./routes/ExamRoute");
 app.use("/exam", Exams);
 const Activity = require("./routes/ActivityRoute");
 app.use("/activity", Activity);
+const FeeRoutes = require('./routes/FeeRoutes');
+app.use("/fee", FeeRoutes);
 app.listen(PORT, () => {
   console.log(`Server is live on port ${PORT}`);
 });

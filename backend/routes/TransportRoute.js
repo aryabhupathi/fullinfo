@@ -6,7 +6,8 @@ const Transport = require("../schemas/TransportSchema"); // Make sure path is co
 router.get("/transportdetails", async (req, res) => {
   try {
     const transports = await Transport.find();
-    res.status(200).json(transports);
+    const count = transports.length;
+    res.status(200).json({ count: count, transports: transports });
   } catch (err) {
     res
       .status(500)

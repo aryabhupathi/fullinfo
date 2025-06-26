@@ -25,7 +25,7 @@ function App() {
           <Route path="/fee_payment/pay" element={<FeePayment />} />
           <Route path="/fee_payment/history" element={<FeePaymentHistory />} />
           <Route path="/transport/users" element={<TransportUsers />} />
-          <Route path="/transport/manage" element={<ManageTransport />} />
+          <Route path="/transport/newTransport" element={<ManageTransport />} />
           <Route path="/exam" element={<Exam />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/profile" element={<Profile />} />

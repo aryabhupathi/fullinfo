@@ -1,13 +1,11 @@
-
-
 const mongoose = require("mongoose");
-
 const studentAdmissionSchema = new mongoose.Schema({
   studentName: { type: String, required: true },
-  dateofbirth: {type: Date, required: true},
+  rollNumber: { type: String, required: true, unique: true},
+  dateofbirth: { type: Date, required: true },
   className: { type: String, required: true },
   sectionName: { type: String, required: true },
-  dateofadmission: {type: Date, required: true},  
+  dateofadmission: { type: Date, required: true },
   admissionSession: { type: String, required: true },
   oldSchool: { type: String, required: true },
   fatherName: { type: String, required: true },
@@ -20,5 +18,4 @@ const studentAdmissionSchema = new mongoose.Schema({
   securityNumber: { type: String, required: false },
   address: { type: String, required: true },
 });
-
 module.exports = mongoose.model("NewAdmissions", studentAdmissionSchema);

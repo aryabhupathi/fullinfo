@@ -24,7 +24,7 @@ const Exam = () => {
     fetch("http://localhost:1111/exam/examList")
       .then((res) => res.json())
       .then((data) => {
-        setExamData(data);
+        setExamData(data.examList);
         setLoading(false);
       })
       .catch((error) => {

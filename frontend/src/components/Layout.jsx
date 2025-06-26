@@ -124,7 +124,7 @@ const Layout = () => {
                 </button>
                 <DropdownMenu
                   items={[
-                    { label: "Manage Transport", to: "/transport/manage" },
+                    { label: "Manage Transport", to: "/transport/newTransport" },
                     { label: "Transport Users", to: "/transport/users" },
                   ]}
                 />

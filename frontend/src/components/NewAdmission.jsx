@@ -121,7 +121,6 @@ const NewAdmission = () => {
         }
       );
       const data = await response.json();
-      console.log(data.status, "ssssssssssssssssssssssssssssss");
       if (data.status === "PASS") {
         setMessage("Registration successful!");
         setIsError(false);

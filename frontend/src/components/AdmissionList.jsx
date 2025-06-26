@@ -19,7 +19,7 @@ const AdmissionList = () => {
     fetch("http://localhost:1111/admission/students")
       .then((res) => res.json())
       .then((data) => {
-        setAdmissionList(data);
+        setAdmissionList(data.students);
         setLoading(false);
       })
       .catch((error) => {
@@ -73,13 +73,14 @@ const AdmissionList = () => {
   };
   return (
     <div className="container-fluid mt-4">
+    <div className="d-flex justify-content-between">
       <h2>Admission List</h2>
       <button
         className="btn btn-secondary mb-3"
         onClick={() => setOpenFilters(!openFilters)}
       >
         {openFilters ? "Hide Filters" : "Show Filters"}
-      </button>
+      </button></div>
       {openFilters && (
         <div className="card p-3 mb-4">
           <div className="row">
@@ -138,22 +139,22 @@ const AdmissionList = () => {
             <table className="table table-striped table-bordered w-100">
               <thead className="thead-dark">
                 <tr>
-                  <th style={{ whiteSpace: "nowrap" }}>Student Name</th>
-                  <th style={{ whiteSpace: "nowrap" }}>Date of Birth</th>
-                  <th style={{ whiteSpace: "nowrap" }}>Class</th>
-                  <th style={{ whiteSpace: "nowrap" }}>Section</th>
-                  <th style={{ whiteSpace: "nowrap" }}>Date of Admission</th>
-                  <th style={{ whiteSpace: "nowrap" }}>Admission Session</th>
-                  <th style={{ whiteSpace: "nowrap" }}>Old School</th>
-                  <th style={{ whiteSpace: "nowrap" }}>Father Name</th>
-                  <th style={{ whiteSpace: "nowrap" }}>Mother Name</th>
-                  <th style={{ whiteSpace: "nowrap" }}>Mobile Number</th>
-                  <th style={{ whiteSpace: "nowrap" }}>Aadhar Number</th>
-                  <th style={{ whiteSpace: "nowrap" }}>Religion</th>
-                  <th style={{ whiteSpace: "nowrap" }}>Caste</th>
-                  <th style={{ whiteSpace: "nowrap" }}>Parent Occupation</th>
-                  <th style={{ whiteSpace: "nowrap" }}>Security Number</th>
-                  <th style={{ whiteSpace: "nowrap" }}>Address</th>
+                  <th>Student Name</th>
+                  <th>Date of Birth</th>
+                  <th>Class</th>
+                  <th>Section</th>
+                  <th>Date of Admission</th>
+                  <th>Admission Session</th>
+                  <th>Old School</th>
+                  <th>Father Name</th>
+                  <th>Mother Name</th>
+                  <th>Mobile Number</th>
+                  <th>Aadhar Number</th>
+                  <th>Religion</th>
+                  <th>Caste</th>
+                  <th>Parent Occupation</th>
+                  <th>Security Number</th>
+                  <th>Address</th>
                 </tr>
               </thead>
               <tbody>
