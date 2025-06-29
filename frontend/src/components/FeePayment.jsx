@@ -1,52 +1,57 @@
 import React, { useEffect, useState } from "react";
+const API_URL = "http://localhost:1111/fee";
+const PENDING_FEES_URL = `${API_URL}/pendingfee`;
+const STUDENT_LOOKUP_URL = `${API_URL}/student`;
+const ACTIVITY_LOOKUP_URL = `${API_URL}/activity`;
+const defaultForm = {
+  studentName: "",
+  rollNumber: "",
+  className: "",
+  section: "",
+  activity: "",
+  totalFee: "",
+  paidAmount: "",
+  dueDate: "",
+  transactionId: "",
+};
 const FeePayment = () => {
-  const API_URL = "http://localhost:1111/fee/payfee";
-  const PENDING_FEES_URL = "http://localhost:1111/fee/pendingfee";
-  const STUDENT_LOOKUP_URL = "http://localhost:1111/fee/student";
-  const ACTIVITY_LOOKUP_URL = "http://localhost:1111/fee/activity";
   const [fees, setFees] = useState([]);
+  const [formData, setFormData] = useState(defaultForm);
   const [editId, setEditId] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [notification, setNotification] = useState("");
-  const [formData, setFormData] = useState({
-    studentName: "",
-    rollNumber: "",
-    className: "",
-    section: "",
-    activity: "",
-    totalFee: "",
-    paidAmount: "",
-    dueDate: "",
-    transactionId: "",
-  });
+  const [showForm, setShowForm] = useState(false);
+  const [rollFilter, setRollFilter] = useState("");
   useEffect(() => {
-    loadPendingFees();
+    fetchPendingFees();
   }, []);
-  const loadPendingFees = async () => {
+  const fetchPendingFees = async () => {
     try {
       const res = await fetch(PENDING_FEES_URL);
-      if (!res.ok) throw new Error("Failed to fetch pending fees");
-      const data = await res.json();
-      setFees(data);
+      if (res.ok) setFees(await res.json());
     } catch (err) {
-      console.error(err);
-      alert("Error loading pending fees");
+      console.error("Failed to load pending fees", err);
     }
   };
   const resetForm = () => {
-    setFormData({
-      studentName: "",
-      rollNumber: "",
-      className: "",
-      section: "",
-      activity: "",
-      totalFee: "",
-      paidAmount: "",
-      dueDate: "",
-      transactionId: "",
-    });
+    setFormData(defaultForm);
     setEditId(null);
   };
+  const getStatusBadge = (status) => {
+    switch (status) {
+      case "Overdue":
+        return <span className="badge bg-danger">Overdue</span>;
+      case "Partially Paid":
+        return (
+          <span className="badge bg-warning text-dark">Partially Paid</span>
+        );
+      case "Paid":
+        return <span className="badge bg-success">Paid</span>;
+      default:
+        return <span className="badge bg-secondary">{status}</span>;
+    }
+  };
+  const formatDate = (dateStr) =>
+    dateStr ? new Date(dateStr).toISOString().split("T")[0] : "";
   const handleChange = async (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -66,47 +71,42 @@ const FeePayment = () => {
         console.error("Student lookup failed:", err);
       }
     }
-    if (name === "activity" && value) {
+    if (name === "activity") {
       try {
         const res = await fetch(`${ACTIVITY_LOOKUP_URL}?activity=${value}`);
         if (res.ok) {
           const data = await res.json();
           setFormData((prev) => ({
             ...prev,
-            activity: value,
             totalFee: data.totalFee || "",
-            dueDate: data.dueDate
-              ? new Date(data.dueDate).toISOString().split("T")[0]
-              : "",
+            dueDate: formatDate(data.dueDate),
           }));
-          return;
         }
       } catch (err) {
-        console.error("Activity lookup failed", err);
+        console.error("Activity lookup failed:", err);
       }
     }
   };
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    const method = "POST";
-    const url = API_URL;
+    const method = editId ? "PUT" : "POST";
+    const url = editId ? `${API_URL}/update/${editId}` : `${API_URL}/payfee`;
     try {
       const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...formData,
-          paidAmount: Number(formData.paidAmount),
           totalFee: Number(formData.totalFee),
+          paidAmount: Number(formData.paidAmount),
         }),
       });
-      if (!res.ok) throw new Error("Failed to submit form");
+      if (!res.ok) throw new Error("Submission failed");
       resetForm();
-      await loadPendingFees();
+      await fetchPendingFees();
     } catch (err) {
-      console.error(err);
-      alert("Error saving fee record");
+      console.error("Error submitting fee:", err);
     } finally {
       setLoading(false);
     }
@@ -114,142 +114,131 @@ const FeePayment = () => {
   const handleEdit = (fee) => {
     setEditId(fee._id);
     setFormData({
-      studentName: fee.studentName,
-      rollNumber: fee.rollNumber,
-      className: fee.className,
-      section: fee.section,
-      activity: fee.activity,
-      totalFee: fee.totalFee,
-      paidAmount: fee.paidAmount,
-      dueDate: new Date(fee.dueDate).toISOString().split("T")[0],
+      studentName: fee.studentName || "",
+      rollNumber: fee.rollNumber || "",
+      className: fee.className || "",
+      section: fee.section || "",
+      activity: fee.activity || "",
+      totalFee: fee.totalFee || "",
+      paidAmount: fee.paidAmount || "",
+      dueDate: formatDate(fee.dueDate),
       transactionId: fee.transactionId || "",
     });
   };
-  const sendMockNotification = (student) => {
-    setNotification(
-      `🔔 Notification sent to ${student.studentName} (Roll: ${student.rollNumber}) about ₹${student.balance} pending.`
-    );
-    setTimeout(() => setNotification(""), 5000);
-  };
+  const filteredFees = fees.filter((fee) =>
+    fee.rollNumber.toString().includes(rollFilter.trim())
+  );
   return (
     <div className="container mt-4">
       <h3 className="mb-4">🎓 Student Fee Management</h3>
-      {notification && <div className="alert alert-info">{notification}</div>}
-      <form onSubmit={handleSubmit} className="card card-body shadow-sm mb-5">
-        <div className="row">
-          <div className="col-md-6 mb-3">
-            <label>Student Name</label>
-            <input
-              type="text"
-              name="studentName"
-              className="form-control"
-              value={formData.studentName}
-              onChange={handleChange}
-              required
-            />
+      <button onClick={() => setShowForm(!showForm)}>Add New Student</button>
+      {showForm && (
+        <form
+          onSubmit={handleSubmit}
+          className="card shadow-sm p-4 mb-5 bg-light"
+        >
+          <div className="row">
+            {["studentName", "rollNumber", "className", "section"].map(
+              (field) => (
+                <div key={field} className="col-md-6 mb-3">
+                  <label>{field.replace(/([A-Z])/g, " $1")}</label>
+                  <input
+                    name={field}
+                    value={formData[field]}
+                    onChange={handleChange}
+                    className="form-control"
+                    required
+                  />
+                </div>
+              )
+            )}
           </div>
-          <div className="col-md-6 mb-3">
-            <label>Roll Number</label>
-            <input
-              type="text"
-              name="rollNumber"
-              className="form-control"
-              value={formData.rollNumber}
-              onChange={handleChange}
-              required
-            />
+          <div className="row">
+            <div className="col-md-3 mb-3">
+              <label>Activity</label>
+              <select
+                name="activity"
+                value={formData.activity}
+                onChange={handleChange}
+                className="form-select"
+                required
+              >
+                <option value="">Select Activity</option>
+                {["Mathematics", "Science", "Sports", "Debate"].map((act) => (
+                  <option key={act} value={act}>
+                    {act}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="col-md-3 mb-3">
+              <label>Due Date</label>
+              <input
+                type="date"
+                name="dueDate"
+                value={formData.dueDate}
+                onChange={handleChange}
+                className="form-control"
+                required
+              />
+            </div>
+            <div className="col-md-3 mb-3">
+              <label>Total Fee (₹)</label>
+              <input
+                type="number"
+                name="totalFee"
+                value={formData.totalFee}
+                onChange={handleChange}
+                className="form-control"
+                required
+              />
+            </div>
+            <div className="col-md-3 mb-3">
+              <label>Paid Amount (₹)</label>
+              <input
+                type="number"
+                name="paidAmount"
+                value={formData.paidAmount}
+                onChange={handleChange}
+                className="form-control"
+                required
+              />
+            </div>
           </div>
-        </div>
-        <div className="row">
-          <div className="col-md-3 mb-3">
-            <label>Class</label>
-            <input
-              type="text"
-              name="className"
-              className="form-control"
-              value={formData.className}
-              onChange={handleChange}
-              required
-            />
-          </div>
-          <div className="col-md-3 mb-3">
-            <label>Section</label>
-            <input
-              type="text"
-              name="section"
-              className="form-control"
-              value={formData.section}
-              onChange={handleChange}
-              required
-            />
-          </div>
-          <div className="col-md-3 mb-3">
-            <label>Activity</label>
-            <select
-              name="activity"
-              className="form-select"
-              value={formData.activity}
-              onChange={handleChange}
-              required
-            >
-              <option value="">Select Activity</option>
-              <option value="Mathematics">Mathematics</option>
-              <option value="Science">Science</option>
-              <option value="Sports">Sports</option>
-              <option value="Debate">Debate</option>
-            </select>
-          </div>
-          <div className="col-md-3 mb-3">
-            <label>Due Date</label>
-            <input
-              type="date"
-              name="dueDate"
-              className="form-control"
-              value={formData.dueDate}
-              onChange={handleChange}
-              required
-            />
-          </div>
-        </div>
-        <div className="row">
-          <div className="col-md-4 mb-3">
-            <label>Total Fee (₹)</label>
-            <input
-              type="number"
-              name="totalFee"
-              className="form-control"
-              value={formData.totalFee}
-              onChange={handleChange}
-              required
-            />
-          </div>
-          <div className="col-md-4 mb-3">
-            <label>Paid Amount (₹)</label>
-            <input
-              type="number"
-              name="paidAmount"
-              className="form-control"
-              value={formData.paidAmount}
-              onChange={handleChange}
-              required
-            />
-          </div>
-          <div className="col-md-4 mb-3">
-            <label>Transaction ID (Optional)</label>
-            <input
-              type="text"
-              name="transactionId"
-              className="form-control"
-              value={formData.transactionId}
-              onChange={handleChange}
-            />
-          </div>
-        </div>
-        <button type="submit" className="btn btn-primary" disabled={loading}>
-          {loading ? "Saving..." : editId ? "Update Fee" : "Add Fee"}
-        </button>
-      </form>
-      <h4>📌 Pending / Overdue Payments</h4>
+          {/* <button type="submit" className="btn btn-primary" disabled={loading}>
+            {loading ? "Saving..." : editId ? "Update Fee" : "Add Fee"}
+          </button> */}
+          <button
+            type="submit"
+            className="btn btn-primary mt-3"
+            disabled={loading}
+          >
+            {loading ? (
+              <>
+                <span className="spinner-border spinner-border-sm me-2"></span>
+                Saving...
+              </>
+            ) : editId ? (
+              "Update Fee"
+            ) : (
+              "Add Fee"
+            )}
+          </button>
+        </form>
+      )}
+      <div className="mb-3">
+        <label htmlFor="rollFilter" className="form-label">
+          🔍 Filter by Roll Number
+        </label>
+        <input
+          id="rollFilter"
+          type="text"
+          value={rollFilter}
+          onChange={(e) => setRollFilter(e.target.value)}
+          className="form-control w-25"
+          placeholder="Enter roll number"
+        />
+      </div>
       <table className="table table-bordered table-hover mt-3">
         <thead className="table-dark">
           <tr>
@@ -262,41 +251,36 @@ const FeePayment = () => {
             <th>Balance</th>
             <th>Status</th>
             <th>Due</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
-          {fees.length > 0 ? (
-            fees.map((fee) => (
+          {filteredFees.length ? (
+            filteredFees.map((fee) => (
               <tr key={fee._id}>
                 <td>{fee.studentName}</td>
                 <td>{fee.rollNumber}</td>
-                <td>
-                  {fee.className} - {fee.section}
-                </td>
+                <td>{`${fee.className} - ${fee.section}`}</td>
                 <td>{fee.activity}</td>
                 <td>₹{fee.totalFee}</td>
                 <td>₹{fee.paidAmount}</td>
                 <td>₹{fee.balance}</td>
-                <td>
-                  <span
-                    className={`badge ${
-                      fee.status === "Overdue"
-                        ? "bg-danger"
-                        : fee.status === "Partially Paid"
-                        ? "bg-warning text-dark"
-                        : "bg-success"
-                    }`}
-                  >
-                    {fee.status}
-                  </span>
-                </td>
+                <td>{getStatusBadge(fee.status)}</td>
                 <td>{new Date(fee.dueDate).toLocaleDateString()}</td>
+                <td>
+                  <button
+                    className="btn btn-sm btn-warning me-1"
+                    onClick={() => handleEdit(fee)}
+                  >
+                    <i className="bi bi-pencil-square"></i> Edit
+                  </button>
+                </td>
               </tr>
             ))
           ) : (
             <tr>
-              <td colSpan="9" className="text-center text-muted">
-                No pending fees found.
+              <td colSpan="10" className="text-center text-muted">
+                No matching records found.
               </td>
             </tr>
           )}

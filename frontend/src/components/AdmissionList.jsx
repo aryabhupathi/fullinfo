@@ -9,9 +9,8 @@ const AdmissionList = () => {
   const [openFilters, setOpenFilters] = useState(false);
   const [filters, setFilters] = useState({
     name: "",
-    className: "",
-    dobStart: "",
-    dobEnd: "",
+    rollnumber: "",
+    className:"",
   });
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
@@ -28,30 +27,26 @@ const AdmissionList = () => {
       });
   }, []);
   const filteredData = admissionList.filter((student) => {
-    const matchesName =
-      filters.name === "" ||
-      (student.studentName
-        ?.toLowerCase()
-        .includes(filters.name.toLowerCase()) ??
-        false);
-    const matchesClass =
-      filters.className === "" ||
-      (student.className
-        ?.toString()
-        .toLowerCase()
-        .includes(filters.className.toLowerCase()) ??
-        false);
-    const studentDob = student.dateofbirth
-      ? new Date(student.dateofbirth)
-      : null;
-    const dobStart = filters.dobStart ? new Date(filters.dobStart) : null;
-    const dobEnd = filters.dobEnd ? new Date(filters.dobEnd) : null;
-    const matchesDob =
-      (!dobStart || (studentDob && studentDob >= dobStart)) &&
-      (!dobEnd || (studentDob && studentDob <= dobEnd));
-    return matchesName && matchesClass && matchesDob;
-  });
-  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+  const matchesName =
+    filters.name === "" ||
+    (student.studentName
+      ?.toLowerCase()
+      .includes(filters.name.toLowerCase()) ?? false);
+  const matchesClass =
+    filters.className === "" ||
+    (student.className
+      ?.toString()
+      .toLowerCase()
+      .includes(filters.className.toLowerCase()) ?? false);
+  const rollMatches =
+    filters.rollnumber === "" ||
+    (student.rollNumber
+      ?.toLowerCase()
+      .includes(filters.rollnumber.toLowerCase()) ?? false);
+
+  return matchesName && matchesClass && rollMatches;
+});
+const totalPages = Math.ceil(filteredData.length / itemsPerPage);
   const goToNextPage = () => {
     if (currentPage < totalPages) setCurrentPage(currentPage + 1);
   };
@@ -96,6 +91,17 @@ const AdmissionList = () => {
               />
             </div>
             <div className="col-md-3">
+              <label>Roll Number</label>
+              <input
+                type="text"
+                name="rollnumber"
+                className="form-control"
+                value={filters.rollnumber}
+                onChange={handleFilterChange}
+                placeholder="Search by name"
+              />
+            </div>
+            <div className="col-md-3">
               <label>Class</label>
               <input
                 type="text"
@@ -106,26 +112,7 @@ const AdmissionList = () => {
                 placeholder="Filter by class"
               />
             </div>
-            <div className="col-md-3">
-              <label>Date of Birth (From)</label>
-              <input
-                type="date"
-                name="dobStart"
-                className="form-control"
-                value={filters.dobStart}
-                onChange={handleFilterChange}
-              />
-            </div>
-            <div className="col-md-3">
-              <label>Date of Birth (To)</label>
-              <input
-                type="date"
-                name="dobEnd"
-                className="form-control"
-                value={filters.dobEnd}
-                onChange={handleFilterChange}
-              />
-            </div>
+           
           </div>
         </div>
       )}
@@ -144,16 +131,10 @@ const AdmissionList = () => {
                   <th>Class</th>
                   <th>Section</th>
                   <th>Date of Admission</th>
-                  <th>Admission Session</th>
-                  <th>Old School</th>
                   <th>Father Name</th>
                   <th>Mother Name</th>
                   <th>Mobile Number</th>
                   <th>Aadhar Number</th>
-                  <th>Religion</th>
-                  <th>Caste</th>
-                  <th>Parent Occupation</th>
-                  <th>Security Number</th>
                   <th>Address</th>
                 </tr>
               </thead>
@@ -165,16 +146,10 @@ const AdmissionList = () => {
                     <td>{e.className}</td>
                     <td>{e.sectionName}</td>
                     <td>{formatDate(e.dateofadmission)}</td>
-                    <td>{e.admissionSession}</td>
-                    <td>{e.oldSchool}</td>
                     <td>{e.fatherName}</td>
                     <td>{e.motherName}</td>
                     <td>{e.mobileNumber}</td>
                     <td>{e.aadharNumber}</td>
-                    <td>{e.religion}</td>
-                    <td>{e.caste}</td>
-                    <td>{e.parentOccupation}</td>
-                    <td>{e.securityNumber}</td>
                     <td>{e.address}</td>
                   </tr>
                 ))}

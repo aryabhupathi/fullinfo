@@ -13,6 +13,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import FeePaymentHistory from "./components/FeePaymentHistory";
 import Profile from "./components/Account/Profile";
 import Login from "./components/Account/Login";
+import Addnewvehicle from "./components/Transport/Addnewvehicle";
+import AssignStudent from "./components/Transport/AssignStudent";
 function App() {
   return (
     <BrowserRouter>
@@ -26,6 +28,8 @@ function App() {
           <Route path="/fee_payment/history" element={<FeePaymentHistory />} />
           <Route path="/transport/users" element={<TransportUsers />} />
           <Route path="/transport/newTransport" element={<ManageTransport />} />
+        <Route path="/transport/addnewvehicle" element={<Addnewvehicle />} />
+        <Route path="/transport/assignvehicle" element={<AssignStudent />} />
           <Route path="/exam" element={<Exam />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/profile" element={<Profile />} />

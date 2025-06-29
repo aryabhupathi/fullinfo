@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -8,17 +9,13 @@ const NewAdmission = () => {
     className: "",
     sectionName: "",
     dateofadmission: null,
-    admissionSession: "",
-    oldSchool: "",
     fatherName: "",
     motherName: "",
     mobileNumber: "",
     aadharNumber: "",
-    religion: "",
-    caste: "",
-    parentOccupation: "",
-    securityNumber: "",
     address: "",
+    fathermobileNumber: "",
+    needTransport: "",
   });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
@@ -46,11 +43,12 @@ const NewAdmission = () => {
       className,
       sectionName,
       dateofadmission,
-      admissionSession,
       fatherName,
       mobileNumber,
+      fathermobileNumber,
       aadharNumber,
       address,
+      needTransport,
     } = formData;
     if (!studentName.trim()) {
       newErrors.studentName = "Student name is required";
@@ -75,10 +73,6 @@ const NewAdmission = () => {
       newErrors.dateofadmission = "Date of admission is required";
       hasError = true;
     }
-    if (!admissionSession) {
-      newErrors.admissionSession = "Admission session is required";
-      hasError = true;
-    }
     if (!fatherName.trim()) {
       newErrors.fatherName = "Father's name is required";
       hasError = true;
@@ -87,12 +81,20 @@ const NewAdmission = () => {
       newErrors.mobileNumber = "Enter a valid 10-digit mobile number";
       hasError = true;
     }
+    if (!fathermobileNumber || !/^[0-9]{10}$/.test(fathermobileNumber)) {
+      newErrors.fathermobileNumber = "Enter a valid 10-digit mobile number";
+      hasError = true;
+    }
     if (aadharNumber && !/^\d{12}$/.test(aadharNumber)) {
       newErrors.aadharNumber = "Enter a valid 12-digit Aadhar number";
       hasError = true;
     }
     if (!address || address.trim().length < 10) {
       newErrors.address = "Address must be at least 10 characters";
+      hasError = true;
+    }
+    if (!needTransport) {
+      newErrors.needTransport = "Please select whether transport is needed";
       hasError = true;
     }
     setErrors(newErrors);
@@ -110,6 +112,7 @@ const NewAdmission = () => {
         dateofbirth: formData.dateofbirth?.toISOString().split("T")[0],
         dateofadmission: formData.dateofadmission?.toISOString().split("T")[0],
       };
+      console.log(payload, "plplplplplplplplplpplplplpl")
       const response = await fetch(
         "http://localhost:1111/admission/newAdmission",
         {
@@ -127,7 +130,7 @@ const NewAdmission = () => {
         handleReset();
         setTimeout(() => setMessage(""), 5000);
       } else {
-        setMessage("Registration failed.Please try again");
+        setMessage("Registration failed. Please try again");
         setIsError(true);
       }
     } catch (error) {
@@ -144,17 +147,13 @@ const NewAdmission = () => {
       className: "",
       sectionName: "",
       dateofadmission: null,
-      admissionSession: "",
-      oldSchool: "",
       fatherName: "",
       motherName: "",
       mobileNumber: "",
       aadharNumber: "",
-      religion: "",
-      caste: "",
-      parentOccupation: "",
-      securityNumber: "",
       address: "",
+      fathermobileNumber: "",
+      needTransport: "",
     });
     setErrors({});
     setMessage("");
@@ -212,12 +211,9 @@ const NewAdmission = () => {
                     onChange={(date) => handleDateChange(date, "dateofbirth")}
                     className="form-control"
                     dateFormat="yyyy-MM-dd"
-                    wrapperClassName="datepicker"
+                    wrapperClassName="datepicker w-100"
                     placeholderText="Select date of birth"
                     maxDate={new Date()}
-                    showMonthDropdown
-                    showYearDropdown
-                    dropdownMode="select"
                   />
                   {errors.dateofbirth && (
                     <div className="text-danger">{errors.dateofbirth}</div>
@@ -278,12 +274,9 @@ const NewAdmission = () => {
                     }
                     className="form-control"
                     dateFormat="yyyy-MM-dd"
-                    wrapperClassName="datepicker"
+                    wrapperClassName="datepicker w-100"
                     placeholderText="Select date of admission"
                     maxDate={new Date()}
-                    showMonthDropdown
-                    showYearDropdown
-                    dropdownMode="select"
                   />
                   {errors.dateofadmission && (
                     <div className="text-danger">{errors.dateofadmission}</div>
@@ -291,39 +284,41 @@ const NewAdmission = () => {
                 </div>
                 <div className="mb-3">
                   <label className="form-label">
-                    Admission Session <span className="text-danger">*</span>
+                    Need Transport <span className="text-danger">*</span>
                   </label>
-                  <select
-                    className="form-select"
-                    name="admissionSession"
-                    value={formData.admissionSession}
-                    onChange={handleChange}
-                  >
-                    <option value="">Choose Session</option>
-                    <option value="Morning">Morning</option>
-                    <option value="Afternoon">Afternoon</option>
-                    <option value="Evening">Evening</option>
-                  </select>
-                  {errors.admissionSession && (
-                    <div className="text-danger">{errors.admissionSession}</div>
+                  <div className="d-flex gap-3">
+                    <div className="form-check">
+                      <input
+                        type="radio"
+                        className="form-check-input"
+                        name="needTransport"
+                        value="yes"
+                        checked={formData.needTransport === "yes"}
+                        onChange={handleChange}
+                      />
+                      <label className="form-check-label">Yes</label>
+                    </div>
+                    <div className="form-check">
+                      <input
+                        type="radio"
+                        className="form-check-input"
+                        name="needTransport"
+                        value="no"
+                        checked={formData.needTransport === "no"}
+                        onChange={handleChange}
+                      />
+                      <label className="form-check-label">No</label>
+                    </div>
+                  </div>
+                  {errors.needTransport && (
+                    <div className="text-danger">{errors.needTransport}</div>
                   )}
-                </div>
-                <div className="mb-3">
-                  <label className="form-label">Old School</label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    name="oldSchool"
-                    value={formData.oldSchool}
-                    onChange={handleChange}
-                    placeholder="Enter your old school name"
-                  />
                 </div>
               </div>
             </div>
           </div>
           <div className="col-md-6">
-             <div className="card h-100 shadow-sm border-0 parent-card">
+            <div className="card h-100 shadow-sm border-0 parent-card">
               <div className="card-header bg-light fw-bold">Parent Details</div>
               <div className="card-body">
                 <div className="row mb-3">
@@ -337,7 +332,7 @@ const NewAdmission = () => {
                       name="fatherName"
                       value={formData.fatherName}
                       onChange={handleChange}
-                      placeholder="Enter your father name"
+                      placeholder="Enter father name"
                     />
                     {errors.fatherName && (
                       <div className="text-danger">{errors.fatherName}</div>
@@ -351,7 +346,7 @@ const NewAdmission = () => {
                       name="motherName"
                       value={formData.motherName}
                       onChange={handleChange}
-                      placeholder="Enter your mother name"
+                      placeholder="Enter mother name"
                     />
                   </div>
                 </div>
@@ -361,12 +356,12 @@ const NewAdmission = () => {
                       Mobile No <span className="text-danger">*</span>
                     </label>
                     <input
-                      type="text"
+                      type="number"
                       className="form-control"
                       name="mobileNumber"
                       value={formData.mobileNumber}
                       onChange={handleChange}
-                      placeholder="Enter your mobile number"
+                      placeholder="Enter mobile number"
                     />
                     {errors.mobileNumber && (
                       <div className="text-danger">{errors.mobileNumber}</div>
@@ -380,7 +375,7 @@ const NewAdmission = () => {
                       name="aadharNumber"
                       value={formData.aadharNumber}
                       onChange={handleChange}
-                      placeholder="Enter your aadhar number"
+                      placeholder="Enter Aadhar number"
                     />
                     {errors.aadharNumber && (
                       <div className="text-danger">{errors.aadharNumber}</div>
@@ -389,56 +384,22 @@ const NewAdmission = () => {
                 </div>
                 <div className="row mb-3">
                   <div className="col">
-                    <label className="form-label">Religion</label>
+                    <label className="form-label">
+                      Father Mobile No <span className="text-danger">*</span>
+                    </label>
                     <input
-                      type="text"
+                      type="number"
                       className="form-control"
-                      name="religion"
-                      value={formData.religion}
+                      name="fathermobileNumber"
+                      value={formData.fathermobileNumber}
                       onChange={handleChange}
-                      placeholder="Enter your religion"
+                      placeholder="Enter father's mobile number"
                     />
-                  </div>
-                  <div className="col">
-                    <label className="form-label">Caste</label>
-                    <select
-                      className="form-select"
-                      name="caste"
-                      value={formData.caste}
-                      onChange={handleChange}
-                    >
-                      <option value="">Choose your caste</option>
-                      <option value="General">General</option>
-                      <option value="OBC">OBC</option>
-                      <option value="SC">SC</option>
-                      <option value="ST">ST</option>
-                      <option value="EWS">EWS</option>
-                      <option value="Other">Other</option>
-                    </select>
-                  </div>
-                </div>
-                <div className="row mb-3">
-                  <div className="col">
-                    <label className="form-label">Parent Occupation</label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      name="parentOccupation"
-                      value={formData.parentOccupation}
-                      onChange={handleChange}
-                      placeholder="Enter your parent occupation"
-                    />
-                  </div>
-                  <div className="col">
-                    <label className="form-label">Any ID Proof No</label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      name="securityNumber"
-                      value={formData.securityNumber}
-                      onChange={handleChange}
-                      placeholder="Enter your ID proof number"
-                    />
+                    {errors.fathermobileNumber && (
+                      <div className="text-danger">
+                        {errors.fathermobileNumber}
+                      </div>
+                    )}
                   </div>
                 </div>
                 <div className="mb-3">

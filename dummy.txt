@@ -1,0 +1,608 @@
+// import React, { useState, useEffect } from "react";
+// const ManageTransport = () => {
+//   const [formData, setFormData] = useState({
+//     driverName: "",
+//     mobileNumber: "",
+//     size: "",
+//     transportNumber: "",
+//     routeName: "",
+//   });
+//   const [errors, setErrors] = useState({});
+//   const [message, setMessage] = useState({ type: "", text: "" });
+//   const [loading, setLoading] = useState(false);
+//   const [transportData, setTransportData] = useState([]);
+//   const [newTransport, setNewtransport] = useState(false);
+//   const handleChange = (e) => {
+//     const { name, value } = e.target;
+//     setFormData((prev) => ({
+//       ...prev,
+//       [name]: value,
+//     }));
+//   };
+//   const validate = () => {
+//     const newErrors = {};
+//     let hasError = false;
+//     const { driverName, mobileNumber, size, transportNumber, routeName } =
+//       formData;
+//     if (!driverName.trim()) {
+//       newErrors.driverName = "Driver name is required";
+//       hasError = true;
+//     } else if (!/^[a-zA-Z\s]+$/.test(driverName.trim())) {
+//       newErrors.driverName = "Only letters and spaces allowed";
+//       hasError = true;
+//     }
+//     if (!mobileNumber || !/^[0-9]{10}$/.test(mobileNumber)) {
+//       newErrors.mobileNumber = "Enter a valid 10-digit mobile number";
+//       hasError = true;
+//     }
+//     if (!transportNumber || !/^[A-Z][0-9]{3}$/.test(transportNumber)) {
+//       newErrors.transportNumber = "Enter a valid transport number (e.g., A009)";
+//       hasError = true;
+//     }
+//     if (!routeName || !/^[a-zA-Z\s]+$/.test(routeName)) {
+//       newErrors.routeName = "Only letters and spaces allowed";
+//       hasError = true;
+//     }
+//     if (!size) {
+//       newErrors.size = "Size is required";
+//       hasError = true;
+//     }
+//     setErrors(newErrors);
+//     return !hasError;
+//   };
+//   const handleSubmit = async (e) => {
+//     e.preventDefault();
+//     if (!validate()) return;
+//     setLoading(true);
+//     try {
+//       const response = await fetch(
+//         "http://localhost:1111/transport/addtransport",
+//         {
+//           method: "POST",
+//           headers: { "Content-Type": "application/json" },
+//           body: JSON.stringify(formData),
+//         }
+//       );
+//       const data = await response.json();
+//       if (data.status === "PASS") {
+//         setMessage({
+//           type: "success",
+//           text: "Transport registered successfully!",
+//         });
+//         handleReset();
+//         fetchTransports();
+//       } else {
+//         setMessage({ type: "danger", text: "Registration failed. Try again." });
+//       }
+//     } catch (error) {
+//       setMessage({ type: "danger", text: `Server error: ${error.message}` });
+//     } finally {
+//       setLoading(false);
+//       setTimeout(() => setMessage({ type: "", text: "" }), 4000);
+//     }
+//   };
+//   const fetchTransports = () => {
+//     setLoading(true);
+//     fetch("http://localhost:1111/transport/transportdetails")
+//       .then((res) => res.json())
+//       .then((data) => {
+//         setTransportData(data.transports || []);
+//         setLoading(false);
+//       })
+//       .catch((error) => {
+//         console.error("Error fetching transports:", error);
+//         setMessage({ type: "danger", text: "Failed to load transport data." });
+//         setLoading(false);
+//       });
+//   };
+//   useEffect(() => {
+//     fetchTransports();
+//   }, []);
+//   const handleReset = () => {
+//     setFormData({
+//       driverName: "",
+//       mobileNumber: "",
+//       size: "",
+//       transportNumber: "",
+//       routeName: "",
+//     });
+//     setErrors({});
+//   };
+//   const handleDelete = (index) => {
+//     const updatedList = [...transportData];
+//     updatedList.splice(index, 1);
+//     setTransportData(updatedList);
+//     setMessage({ type: "info", text: "Record deleted successfully." });
+//     setTimeout(() => setMessage({ type: "", text: "" }), 4000);
+//   };
+//   return (
+//     <div className="container mt-4">
+//       <h2 className="text-center mb-4">Manage Transport</h2>
+//       {message.text && (
+//         <div
+//           className={`alert alert-${message.type} alert-dismissible fade show`}
+//           role="alert"
+//         >
+//           {message.text}
+//           <button
+//             type="button"
+//             className="btn-close"
+//             aria-label="Close"
+//             onClick={() => setMessage({ type: "", text: "" })}
+//           ></button>
+//         </div>
+//       )}
+//       <div className="card border-danger mb-4 p-3 shadow-sm">
+//         <div className="d-flex justify-content-between align-items-center flex-wrap gap-2">
+//           <input
+//             type="text"
+//             className="form-control w-auto me-auto"
+//             placeholder="Search"
+//             style={{ maxWidth: "200px" }}
+//           />
+//           <button
+//             className="btn btn-danger d-flex align-items-center gap-2"
+//             onClick={() => setNewtransport(!newTransport)}
+//             aria-expanded={newTransport}
+//           >
+//             <span>{newTransport ? "Hide Form" : "New Transport"}</span>
+//           </button>
+//         </div>
+//       </div>
+//       {newTransport && (
+//         <div className="row">
+//           <div className= "row bg-light p-4 rounded shadow-sm mb-4">
+//             <h5 className="mb-3">Add New Transport</h5>
+//             <form onSubmit={handleSubmit}>
+//               <div className="mb-3">
+//                 <label htmlFor="transportNumber" className="form-label">
+//                   Transport Number
+//                 </label>
+//                 <input
+//                   id="transportNumber"
+//                   type="text"
+//                   className="form-control"
+//                   name="transportNumber"
+//                   value={formData.transportNumber}
+//                   onChange={handleChange}
+//                   placeholder="e.g., A001"
+//                 />
+//                 {errors.transportNumber && (
+//                   <small className="text-danger">{errors.transportNumber}</small>
+//                 )}
+//               </div>
+//               <div className="mb-3">
+//                 <label htmlFor="routeName" className="form-label">
+//                   Route Name
+//                 </label>
+//                 <input
+//                   id="routeName"
+//                   type="text"
+//                   className="form-control"
+//                   name="routeName"
+//                   value={formData.routeName}
+//                   onChange={handleChange}
+//                   placeholder="e.g., City Center"
+//                 />
+//                 {errors.routeName && (
+//                   <small className="text-danger">{errors.routeName}</small>
+//                 )}
+//               </div>
+//               <div className="mb-3">
+//                 <label htmlFor="routeName" className="form-label">
+//                   From
+//                 </label>
+//                 <input
+//                   id="routeFrom"
+//                   type="text"
+//                   className="form-control"
+//                   name="routeFrom"
+//                   value={formData.routeFrom}
+//                   onChange={handleChange}
+//                   placeholder="e.g., City Center"
+//                 />
+//                 {errors.routeName && (
+//                   <small className="text-danger">{errors.routeFrom}</small>
+//                 )}
+//               </div>
+//               <div className="mb-3">
+//                 <label htmlFor="routeName" className="form-label">
+//                   To
+//                 </label>
+//                 <input
+//                   id="routeTo"
+//                   type="text"
+//                   className="form-control"
+//                   name="routeTo"
+//                   value={formData.routeTo}
+//                   onChange={handleChange}
+//                   placeholder="e.g., City Center"
+//                 />
+//                 {errors.routeName && (
+//                   <small className="text-danger">{errors.routeTo}</small>
+//                 )}
+//               </div>
+//               <div className="mb-3">
+//                 <label htmlFor="size" className="form-label">
+//                   Size
+//                 </label>
+//                 <select
+//                   id="size"
+//                   className="form-select"
+//                   name="size"
+//                   value={formData.size}
+//                   onChange={handleChange}
+//                 >
+//                   <option value="">Select Size</option>
+//                   <option value="small">Small</option>
+//                   <option value="medium">Medium</option>
+//                   <option value="large">Large</option>
+//                 </select>
+//                 {errors.size && (
+//                   <small className="text-danger">{errors.size}</small>
+//                 )}
+//               </div>
+//               <div className="mb-3">
+//                 <label htmlFor="driverName" className="form-label">
+//                   Driver Name
+//                 </label>
+//                 <input
+//                   id="driverName"
+//                   type="text"
+//                   className="form-control"
+//                   name="driverName"
+//                   value={formData.driverName}
+//                   onChange={handleChange}
+//                   placeholder="e.g., John Doe"
+//                 />
+//                 {errors.driverName && (
+//                   <small className="text-danger">{errors.driverName}</small>
+//                 )}
+//               </div>
+//               <div className="mb-3">
+//                 <label htmlFor="mobileNumber" className="form-label">
+//                   Mobile No.
+//                 </label>
+//                 <input
+//                   id="mobileNumber"
+//                   type="tel"
+//                   className="form-control"
+//                   name="mobileNumber"
+//                   value={formData.mobileNumber}
+//                   onChange={handleChange}
+//                   placeholder="10-digit number"
+//                 />
+//                 {errors.mobileNumber && (
+//                   <small className="text-danger">{errors.mobileNumber}</small>
+//                 )}
+//               </div>
+//               <button
+//                 type="submit"
+//                 className="btn btn-primary w-100"
+//                 disabled={loading}
+//               >
+//                 {loading ? "Saving..." : "Save"}
+//               </button>
+//             </form>
+//           </div>
+//         </div>
+//       )}
+//       <div className="table-responsive mt-4">
+//         <h5>Transport List</h5>
+//         {loading ? (
+//           <p>Loading transport data...</p>
+//         ) : transportData.length === 0 ? (
+//           <p>No transport records found.</p>
+//         ) : (
+//           <table className="table table-striped table-bordered table-hover align-middle">
+//             <thead className="table-dark">
+//               <tr>
+//                 <th>#</th>
+//                 <th>T-Number</th>
+//                 <th>Type</th>
+//                 <th>Route</th>
+//                 <th>Driver</th>
+//                 <th>Mobile</th>
+//                 <th>Action</th>
+//               </tr>
+//             </thead>
+//             <tbody>
+//               {transportData.map((item, index) => (
+//                 <tr key={index}>
+//                   <td>{index + 1}</td>
+//                   <td>{item.transportNumber}</td>
+//                   <td>{item.size}</td>
+//                   <td>{item.routeName}</td>
+//                   <td>{item.driverName}</td>
+//                   <td>{item.mobileNumber}</td>
+//                   <td>
+//                     <button
+//                       className="btn btn-sm btn-warning"
+//                       onClick={() => handleDelete(index)}
+//                     >
+//                       Delete
+//                     </button>
+//                   </td>
+//                 </tr>
+//               ))}
+//             </tbody>
+//           </table>
+//         )}
+//       </div>
+//     </div>
+//   );
+// };
+// export default ManageTransport;
+  // import React, { useState } from "react";
+  // import { useNavigate } from "react-router-dom";
+  // import Addnewvehicle from "./Transport/Addnewvehicle";
+  // import AssignStudent from "./Transport/AssignStudent";
+  // const ManageTransport = () => {
+  //   const [addVehicle, setAddVehicle] = useState(false)
+  //   const [assignVehicle, setassignVehicle] = useState(false)
+  //   const navigate = useNavigate();
+  //   const handleAssignStudent = () => {
+  //     setassignVehicle(!assignVehicle)
+  //     navigate("/transport/assignvehicle"); // Navigate to AssignStudent route
+  //   };
+  //   const handleNewTransport = () => {
+  //     setAddVehicle(!addVehicle)
+  //     navigate("/transport/addnewvehicle"); // Navigate to Addnewvehicle route
+  //   };
+  //   return (
+  //     <>
+  //       <h1>Transport Management</h1>
+  //       <div className="mb-3">
+  //         <input type="search" placeholder="Search transport..." className="form-control d-inline-block w-auto me-2" />
+  //         <button className="btn btn-primary">Search</button>
+  //       </div>
+  //       <button className="btn btn-success me-2" onClick={handleNewTransport}>
+  //         Add New Transport
+  //       </button>
+  //       <button className="btn btn-info" onClick={handleAssignStudent}>
+  //         Assign Student to Transport
+  //       </button>
+  //       {assignVehicle && <AssignStudent />}
+  //       {addVehicle && <Addnewvehicle />}
+  //     </>
+  //   );
+  // };
+  // export default ManageTransport;
+
+
+  // import React, { useState, useEffect } from "react";
+// const Addnewvehicle = () => {
+//   const [formData, setFormData] = useState({
+//     vehicleNumber: "",
+//     driverName: "",
+//     driverMobileNumber: "",
+//     destination: "",
+//     routeNumber: "",
+//     size: "",
+//   });
+//   const [errors, setErrors] = useState({});
+//   const [message, setMessage] = useState({ type: "", text: "" });
+//   const [loading, setLoading] = useState(false);
+//   const handleChange = (e) => {
+//     const { name, value } = e.target;
+//     setFormData((prev) => ({
+//       ...prev,
+//       [name]: value,
+//     }));
+//   };
+//   const validate = () => {
+//     const newErrors = {};
+//     const mobileRegex = /^[0-9]{10}$/;
+//     if (!formData.vehicleNumber.trim())
+//       newErrors.vehicleNumber = "Vehicle number is required.";
+//     if (!formData.driverName.trim())
+//       newErrors.driverName = "Driver name is required.";
+//     if (!formData.driverMobileNumber.trim()) {
+//       newErrors.driverMobileNumber = "Mobile number is required.";
+//     } else if (!mobileRegex.test(formData.driverMobileNumber)) {
+//       newErrors.driverMobileNumber = "Mobile number must be 10 digits.";
+//     }
+//     if (!formData.destination.trim())
+//       newErrors.destination = "Destination is required.";
+//     if (!formData.routeNumber.trim())
+//       newErrors.routeNumber = "Route number is required.";
+//     if (!formData.size) newErrors.size = "Please select a vehicle size.";
+//     return newErrors;
+//   };
+//   const handleSubmit = async (e) => {
+//     e.preventDefault();
+//     const validationErrors = validate();
+//     if (Object.keys(validationErrors).length > 0) {
+//       setErrors(validationErrors);
+//       return;
+//     }
+//     setErrors({});
+//     setLoading(true);
+//     console.log(formData, "fffffffffffffffffffffffffff");
+//     try {
+//       const response = await fetch(
+//         "http://localhost:1111/transport/addtransport",
+//         {
+//           method: "POST",
+//           headers: { "Content-Type": "application/json" },
+//           body: JSON.stringify(formData),
+//         }
+//       );
+//       const data = await response.json();
+//       console.log(data, "sssssssssssssssssssssssssss");
+//       if (data.status === "PASS") {
+//         setMessage({
+//           type: "success",
+//           text: "Transport registered successfully!",
+//         });
+//         handleReset();
+//       } else {
+//         setMessage({ type: "danger", text: "Registration failed. Try again." });
+//       }
+//     } catch (error) {
+//       setMessage({ type: "danger", text: `Server error: ${error.message}` });
+//     } finally {
+//       setLoading(false);
+//       setTimeout(() => setMessage({ type: "", text: "" }), 4000);
+//     }
+//   };
+//   const handleReset = () => {
+//     console.log("aaaaaaaaaaaaaaaaaaaaaaaaaaa");
+//     setFormData({
+//       vehicleNumber: "",
+//       driverName: "",
+//       driverMobileNumber: "",
+//       destination: "",
+//       routeNumber: "",
+//       size: "",
+//     });
+//     setErrors({});
+//   };
+//   return (
+//     <div className="container mt-4">
+//       <h2 className="text-center mb-4">Manage Transport</h2>
+//       {message.text && (
+//         <div
+//           className={`alert alert-${message.type} alert-dismissible fade show`}
+//           role="alert"
+//         >
+//           {message.text}
+//           <button
+//             type="button"
+//             className="btn-close"
+//             aria-label="Close"
+//             onClick={() => setMessage({ type: "", text: "" })}
+//           ></button>
+//         </div>
+//       )}
+//       <div className="row bg-light p-4 rounded shadow-sm mb-4">
+//         <h5 className="mb-3">Add New Transport</h5>
+//         <form onSubmit={handleSubmit}>
+//           <div className="mb-3">
+//             <label htmlFor="vehicleNumber" className="form-label">
+//               Vehicle Number
+//             </label>
+//             <input
+//               id="vehicleNumber"
+//               type="text"
+//               className={`form-control ${
+//                 errors.vehicleNumber ? "is-invalid" : ""
+//               }`}
+//               name="vehicleNumber"
+//               value={formData.vehicleNumber}
+//               onChange={handleChange}
+//               placeholder="e.g., KA01AB1234"
+//             />
+//             {errors.vehicleNumber && (
+//               <small className="text-danger">{errors.vehicleNumber}</small>
+//             )}
+//           </div>
+//           <div className="mb-3">
+//             <label htmlFor="driverName" className="form-label">
+//               Driver Name
+//             </label>
+//             <input
+//               id="driverName"
+//               type="text"
+//               className={`form-control ${
+//                 errors.driverName ? "is-invalid" : ""
+//               }`}
+//               name="driverName"
+//               value={formData.driverName}
+//               onChange={handleChange}
+//               placeholder="e.g., John Doe"
+//             />
+//             {errors.driverName && (
+//               <small className="text-danger">{errors.driverName}</small>
+//             )}
+//           </div>
+//           <div className="mb-3">
+//             <label htmlFor="driverMobileNumber" className="form-label">
+//               Mobile No.
+//             </label>
+//             <input
+//               id="driverMobileNumber"
+//               type="tel"
+//               className={`form-control ${
+//                 errors.driverMobileNumber ? "is-invalid" : ""
+//               }`}
+//               name="driverMobileNumber"
+//               value={formData.driverMobileNumber}
+//               onChange={handleChange}
+//               placeholder="10-digit number"
+//             />
+//             {errors.driverMobileNumber && (
+//               <small className="text-danger">{errors.driverMobileNumber}</small>
+//             )}
+//           </div>
+//           <div className="mb-3">
+//             <label htmlFor="destination" className="form-label">
+//               Destination
+//             </label>
+//             <input
+//               id="destination"
+//               type="text"
+//               className={`form-control ${
+//                 errors.destination ? "is-invalid" : ""
+//               }`}
+//               name="destination"
+//               value={formData.destination}
+//               onChange={handleChange}
+//               placeholder="e.g., Bangalore"
+//             />
+//             {errors.destination && (
+//               <small className="text-danger">{errors.destination}</small>
+//             )}
+//           </div>
+//           <div className="mb-3">
+//             <label htmlFor="routeNumber" className="form-label">
+//               Route Number
+//             </label>
+//             <input
+//               id="routeNumber"
+//               type="text"
+//               className={`form-control ${
+//                 errors.routeNumber ? "is-invalid" : ""
+//               }`}
+//               name="routeNumber"
+//               value={formData.routeNumber}
+//               onChange={handleChange}
+//               placeholder="e.g., R101"
+//             />
+//             {errors.routeNumber && (
+//               <small className="text-danger">{errors.routeNumber}</small>
+//             )}
+//           </div>
+//           <div className="mb-3">
+//             <label htmlFor="size" className="form-label">
+//               Size
+//             </label>
+//             <select
+//               id="size"
+//               className={`form-select ${errors.size ? "is-invalid" : ""}`}
+//               name="size"
+//               value={formData.size}
+//               onChange={handleChange}
+//             >
+//               <option value="">Select Size</option>
+//               <option value="small">Small</option>
+//               <option value="medium">Medium</option>
+//               <option value="large">Large</option>
+//             </select>
+//             {errors.size && (
+//               <small className="text-danger">{errors.size}</small>
+//             )}
+//           </div>
+//           <button
+//             type="submit"
+//             className="btn btn-primary w-100"
+//             disabled={loading}
+//           >
+//             {loading ? "Saving..." : "Save"}
+//           </button>
+//         </form>
+//       </div>
+//     </div>
+//   );
+// };
+// export default Addnewvehicle;

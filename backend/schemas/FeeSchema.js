@@ -1,4 +1,18 @@
 const mongoose = require("mongoose");
+const PaymentSchema = new mongoose.Schema({
+  amount: {
+    type: Number,
+    required: true,
+  },
+  paymentDate: {
+    type: Date,
+    default: Date.now,
+  },
+  transactionId: {
+    type: String,
+    default: "manual",
+  },
+});
 const FeePayment = new mongoose.Schema({
   studentName: {
     type: String,
@@ -7,6 +21,7 @@ const FeePayment = new mongoose.Schema({
   rollNumber: {
     type: String,
     required: true,
+    index: true,
   },
   className: {
     type: String,
@@ -19,6 +34,7 @@ const FeePayment = new mongoose.Schema({
   activity: {
     type: String,
     required: true,
+    index: true,
   },
   totalFee: {
     type: Number,
@@ -27,38 +43,21 @@ const FeePayment = new mongoose.Schema({
   paidAmount: {
     type: Number,
     default: 0,
-    required: true,
   },
   balance: {
     type: Number,
-    default: function () {
-      return this.totalFee - this.paidAmount;
-    },
+    default: 0,
   },
   dueDate: {
     type: Date,
     required: true,
   },
-  paymentHistory: [
-    {
-      amount: Number,
-      paymentDate: {
-        type: Date,
-        default: Date.now,
-      },
-      transactionId: String,
-    },
-  ],
   status: {
     type: String,
     enum: ["Paid", "Partially Paid", "Overdue"],
-    default: function () {
-      const balance = this.totalFee - this.paidAmount;
-      if (balance <= 0) return "Paid";
-      if (new Date() > this.dueDate) return "Overdue";
-      return "Partially Paid";
-    },
+    default: "Partially Paid",
   },
+  paymentHistory: [PaymentSchema],
 });
 FeePayment.pre("save", function (next) {
   this.balance = this.totalFee - this.paidAmount;

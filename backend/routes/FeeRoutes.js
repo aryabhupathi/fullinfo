@@ -1,94 +1,142 @@
 const express = require("express");
+const mongoose = require("mongoose");
 const FeePayment = require("../schemas/FeeSchema");
 const Student = require("../schemas/StudentAdmissionSchema");
 const router = express.Router();
+const ACTIVITY_FEES = {
+  Mathematics: 5000,
+  Science: 6000,
+  Sports: 3000,
+  Debate: 2000,
+};
+const getDueDate = () => new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+router.get("/", async (req, res) => {
+  try {
+    const fees = await FeePayment.find();
+    res.json(fees);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 router.get("/pendingfee", async (req, res) => {
   try {
-    const pendingFees = await FeePayment.find({
+    const fees = await FeePayment.find({
       balance: { $gt: 0 },
-      status: { $in: ["Partially Paid", "Overdue"] },
+      status: { $in: ["Partially Paid", "Overdue", "Paid"] },
     });
-    res.json(pendingFees);
+    res.json(fees);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 router.get("/student", async (req, res) => {
-  const { name } = req.query;
   try {
-    const student = await Student.findOne({ rollNumber: name });
-    if (!student) {
-      return res.status(404).json({ error: "Student not found" });
-    }
-    res.json({
-      studentName: student.studentName,
-      className: student.className,
-      section: student.sectionName,
-    });
-  } catch (err) {
+    const student = await Student.findOne({ rollNumber: req.query.name });
+    if (!student) return res.status(404).json({ error: "Student not found" });
+    const { studentName, className, sectionName } = student;
+    res.json({ studentName, className, section: sectionName });
+  } catch {
     res.status(500).json({ error: "Server error" });
   }
 });
-router.get("/activity", async (req, res) => {
+router.get("/activity", (req, res) => {
   const { activity } = req.query;
-  const feeConfig = {
-    Mathematics: {
-      totalFee: 5000,
-      dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-    },
-    Science: {
-      totalFee: 6000,
-      dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-    },
-    Sports: {
-      totalFee: 3000,
-      dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-    },
-    Debate: {
-      totalFee: 2000,
-      dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-    },
-  };
-  const config = feeConfig[activity];
-  if (config) {
-    res.json(config);
-  } else {
-    res.status(404).json({ error: "Activity not found" });
-  }
+  const totalFee = ACTIVITY_FEES[activity];
+  if (!totalFee) return res.status(404).json({ error: "Activity not found" });
+  res.json({ totalFee, dueDate: getDueDate() });
 });
 router.post("/payfee", async (req, res) => {
   try {
-    const { rollNumber, activity, paidAmount, transactionId } = req.body;
-    const rollNumberNum = Number(rollNumber);
-    let record = await FeePayment.findOne({
-      rollNumber: rollNumberNum,
+    const {
+      rollNumber,
       activity,
-    });
+      paidAmount = 0,
+      transactionId = "manual_update",
+      ...rest
+    } = req.body;
+    let record = await FeePayment.findOne({ rollNumber, activity });
     if (!record) {
-      const requiredFields = ["studentName", "className", "section", "dueDate"];
+      const requiredFields = [
+        "studentName",
+        "className",
+        "section",
+        "dueDate",
+        "totalFee",
+      ];
       const missing = requiredFields.filter((f) => !req.body[f]);
-      if (missing.length > 0) {
-        return res
-          .status(400)
-          .json({ error: `Missing required fields: ${missing.join(", ")}` });
-      }
-      record = new FeePayment(req.body);
-    } else {
-      const amount = Number(paidAmount) || 0;
-      record.paidAmount += amount;
-      record.paymentHistory.push({
-        amount,
-        paymentDate: new Date(),
-        transactionId: transactionId || "manual_update",
+      if (missing.length)
+        return res.status(400).json({ error: `Missing fields: ${missing.join(", ")}` });
+      const newRecord = new FeePayment({
+        ...rest,
+        rollNumber,
+        activity,
+        paidAmount,
+        balance: rest.totalFee - paidAmount,
+        paymentHistory: [{ amount: paidAmount, transactionId }],
       });
+      await newRecord.save();
+      return res.status(201).json(newRecord);
     }
+    const newTotalPaid = record.paidAmount + Number(paidAmount);
+    if (newTotalPaid > record.totalFee) {
+      return res.status(400).json({ error: "Paid amount exceeds total fee." });
+    }
+    record.paidAmount = newTotalPaid;
+    record.paymentHistory.push({
+      amount: paidAmount,
+      paymentDate: new Date(),
+      transactionId,
+    });
     await record.save();
-    res
-      .status(200)
-      .json({ message: "Payment recorded successfully!", data: record });
+    return res.status(200).json(record);
   } catch (err) {
-    console.error("Error processing payment:", err);
-    res.status(400).json({ error: err.message });
+    return res.status(500).json({ error: err.message });
+  }
+});
+router.put("/update/:id", async (req, res) => {
+  const { id } = req.params;
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(400).json({ error: "Invalid ID" });
+  }
+  const data = req.body;
+  const required = [
+    "studentName",
+    "rollNumber",
+    "className",
+    "section",
+    "activity",
+    "totalFee",
+    "paidAmount",
+    "dueDate",
+  ];
+  const missing = required.filter((f) => !data[f]);
+  if (missing.length > 0) {
+    return res.status(400).json({ error: `Missing fields: ${missing.join(", ")}` });
+  }
+  try {
+    const record = await FeePayment.findById(id);
+    if (!record) return res.status(404).json({ error: "Record not found" });
+    Object.assign(record, data);
+    await record.save();
+    return res.status(200).json({ message: "Record updated",  record });
+  } catch (err) {
+    console.error("Error updating fee:", err);
+    return res.status(500).json({ error: "Server error" });
+  }
+});
+router.get("/pendingfee", async (req, res) => {
+  try {
+    const { year, activity, className, section } = req.query;
+    const filter = {};
+    if (year) filter.year = year;
+    if (activity) filter.activity = activity;
+    if (className) filter.className = className;
+    if (section) filter.section = section;
+console.log(filter, "kkkkkkkkkkkkk")
+    const fees = await FeePayment.find(filter);
+    res.json(fees);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 module.exports = router;

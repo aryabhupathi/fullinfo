@@ -1,46 +1,49 @@
 const express = require("express");
 const router = express.Router();
-const Transport = require("../schemas/TransportSchema"); // Make sure path is correct
-
-// GET all transport details
-router.get("/transportdetails", async (req, res) => {
+const Transport = require("../schemas/TransportSchema");
+const Student = require("../schemas/StudentAdmissionSchema"); 
+router.post("/addTransport", async (req, res) => {
+  try {
+    const transport = new Transport(req.body);
+    await transport.save();
+    res.status(201).json({ status: "PASS", transport });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+router.get("/", async (req, res) => {
   try {
     const transports = await Transport.find();
-    const count = transports.length;
-    res.status(200).json({ count: count, transports: transports });
-  } catch (err) {
-    res
-      .status(500)
-      .json({ message: "Failed to fetch transport data", error: err.message });
+    res.json(transports);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 });
-
-// POST a new transport
-router.post("/addtransport", async (req, res) => {
-  const { transportNumber, routeName, size, driverName, mobileNumber } =
-    req.body;
-
+router.get("/:vehicleNumber", async (req, res) => {
   try {
-    const newTransport = new Transport({
-      transportNumber,
-      routeName,
-      size,
-      driverName,
-      mobileNumber,
-    });
-    const existingRoute = await Transport.findOne({ transportNumber });
-    if (existingRoute) {
-      return res
-        .status(409)
-        .json({ status: "FAIL", message: "Route already exists" });
+    const vehicleNumber = req.params.vehicleNumber;
+    const transport = await Transport.findOne({ vehicleNumber });
+    if (!transport) {
+      return res.status(404).json({ message: "Transport not found" });
     }
-    await newTransport.save();
-    res.status(201).json(newTransport);
-  } catch (err) {
-    res
-      .status(500)
-      .json({ message: "Failed to add transport", error: err.message });
+    res.json(transport);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 });
-
+router.put("/update/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const transport = await Transport.findByIdAndUpdate(id, req.body, {
+      new: true,
+      runValidators: true,
+    });
+    if (!transport) {
+      return res.status(404).json({ message: "Transport not found" });
+    }
+    res.json(transport);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
 module.exports = router;
