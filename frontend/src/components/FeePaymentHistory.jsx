@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 const FeePaymentHistory = () => {
   const [feeData, setFeeData] = useState([]);
   const [formData, setFormData] = useState({
@@ -24,7 +24,6 @@ const FeePaymentHistory = () => {
       if (formData.className) params.append("className", formData.className);
       if (formData.section) params.append("section", formData.section);
       const res = await fetch(url + params.toString());
-      // console.log(res, "ppppppppppppppppppppppoooooooooooooooooooooo");
       if (res.ok) {
         setFeeData(await res.json());
       }
@@ -32,7 +31,6 @@ const FeePaymentHistory = () => {
       console.error("Failed to load fees", err);
     }
   };
-  // console.log(feeData, "lllllllllllllllllllllllllllllllll");
   return (
     <div className="container mt-4">
       <h2 className="text-center mb-4">Finance Report</h2>

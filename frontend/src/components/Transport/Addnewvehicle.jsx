@@ -83,8 +83,7 @@ const Addnewvehicle = ({ initialData = null, onSuccess, onCancel }) => {
           ? "Transport updated successfully!"
           : "Transport added successfully!",
       });
-      // if (onSuccess) onSuccess(data);
-      if (onSuccess) onSuccess(data.transport || data); // Fallback to data if not wrapped
+      if (onSuccess) onSuccess(data.transport || data); 
     } catch (error) {
       setMessage({ type: "danger", text: `Server error: ${error.message}` });
     } finally {

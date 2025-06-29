@@ -172,7 +172,7 @@ const NewAdmission = () => {
       )}
       <div className="col-12 text-center mb-4">
         <h2 className="text-primary fw-bold display-6">
-          <i className="bi bi-person-plus-fill me-2"></i>New Admission
+          <i className="bi bi-person-plus-fill me-2"></i>New Admission Gnanianaianian
         </h2>
         <p className="text-danger fw-semibold">
           * Marked fields are mandatory!

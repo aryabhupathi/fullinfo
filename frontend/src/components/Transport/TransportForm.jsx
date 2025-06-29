@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom"; // For routing
-
 const TransportForm = ({ initialData = null }) => {
   const [formData, setFormData] = useState({
     driverName: "",
@@ -14,9 +13,7 @@ const TransportForm = ({ initialData = null }) => {
   const [errors, setErrors] = useState({});
   const [message, setMessage] = useState({ type: "", text: "" });
   const [loading, setLoading] = useState(false);
-
   const isEditMode = !!initialData;
-
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -24,19 +21,11 @@ const TransportForm = ({ initialData = null }) => {
       [name]: value,
     }));
   };
-
   const validate = () => {
     const newErrors = {};
     let hasError = false;
-
-    const {
-      driverName,
-      mobileNumber,
-      size,
-      transportNumber,
-      routeName,
-    } = formData;
-
+    const { driverName, mobileNumber, size, transportNumber, routeName } =
+      formData;
     if (!driverName.trim()) {
       newErrors.driverName = "Driver name is required";
       hasError = true;
@@ -44,31 +33,25 @@ const TransportForm = ({ initialData = null }) => {
       newErrors.driverName = "Only letters and spaces allowed";
       hasError = true;
     }
-
     if (!mobileNumber || !/^[0-9]{10}$/.test(mobileNumber)) {
       newErrors.mobileNumber = "Enter a valid 10-digit mobile number";
       hasError = true;
     }
-
     if (!transportNumber || !/^[A-Z][0-9]{3}$/.test(transportNumber)) {
       newErrors.transportNumber = "Enter a valid transport number (e.g., A001)";
       hasError = true;
     }
-
     if (!routeName || !/^[a-zA-Z\s]+$/.test(routeName)) {
       newErrors.routeName = "Only letters and spaces allowed";
       hasError = true;
     }
-
     if (!size) {
       newErrors.size = "Size is required";
       hasError = true;
     }
-
     setErrors(newErrors);
     return !hasError;
   };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) return;
@@ -77,17 +60,13 @@ const TransportForm = ({ initialData = null }) => {
       const url = isEditMode
         ? `http://localhost:1111/transport/updatetransport/${formData._id}`
         : `http://localhost:1111/transport/addtransport`;
-
       const method = isEditMode ? "PUT" : "POST";
-
       const response = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
-
       const data = await response.json();
-
       if (data.status === "PASS") {
         setMessage({
           type: "success",
@@ -111,7 +90,6 @@ const TransportForm = ({ initialData = null }) => {
       setLoading(false);
     }
   };
-
   const handleReset = () => {
     setFormData({
       driverName: "",
@@ -124,20 +102,16 @@ const TransportForm = ({ initialData = null }) => {
     });
     setErrors({});
   };
-
-  // Set initial data when editing
   useEffect(() => {
     if (isEditMode && initialData) {
       setFormData(initialData);
     }
   }, [initialData, isEditMode]);
-
   return (
     <div className="container mt-4">
       <h2 className="text-center mb-4">
         {isEditMode ? "Edit Transport" : "Add New Transport"}
       </h2>
-
       {message.text && (
         <div
           className={`alert alert-${message.type} alert-dismissible fade show`}
@@ -152,7 +126,6 @@ const TransportForm = ({ initialData = null }) => {
           ></button>
         </div>
       )}
-
       <div className="row justify-content-center">
         <div className="col-md-8 bg-light p-4 rounded shadow-sm">
           <form onSubmit={handleSubmit}>
@@ -173,7 +146,6 @@ const TransportForm = ({ initialData = null }) => {
                 <small className="text-danger">{errors.transportNumber}</small>
               )}
             </div>
-
             <div className="mb-3">
               <label htmlFor="routeName" className="form-label">
                 Route Name
@@ -191,7 +163,6 @@ const TransportForm = ({ initialData = null }) => {
                 <small className="text-danger">{errors.routeName}</small>
               )}
             </div>
-
             <div className="mb-3">
               <label htmlFor="routeFrom" className="form-label">
                 From
@@ -209,7 +180,6 @@ const TransportForm = ({ initialData = null }) => {
                 <small className="text-danger">{errors.routeFrom}</small>
               )}
             </div>
-
             <div className="mb-3">
               <label htmlFor="routeTo" className="form-label">
                 To
@@ -227,7 +197,6 @@ const TransportForm = ({ initialData = null }) => {
                 <small className="text-danger">{errors.routeTo}</small>
               )}
             </div>
-
             <div className="mb-3">
               <label htmlFor="size" className="form-label">
                 Size
@@ -248,7 +217,6 @@ const TransportForm = ({ initialData = null }) => {
                 <small className="text-danger">{errors.size}</small>
               )}
             </div>
-
             <div className="mb-3">
               <label htmlFor="driverName" className="form-label">
                 Driver Name
@@ -266,7 +234,6 @@ const TransportForm = ({ initialData = null }) => {
                 <small className="text-danger">{errors.driverName}</small>
               )}
             </div>
-
             <div className="mb-3">
               <label htmlFor="mobileNumber" className="form-label">
                 Mobile No.
@@ -284,7 +251,6 @@ const TransportForm = ({ initialData = null }) => {
                 <small className="text-danger">{errors.mobileNumber}</small>
               )}
             </div>
-
             <button
               type="submit"
               className="btn btn-primary w-100"
@@ -304,5 +270,4 @@ const TransportForm = ({ initialData = null }) => {
     </div>
   );
 };
-
-export default TransportForm;   
+export default TransportForm;
