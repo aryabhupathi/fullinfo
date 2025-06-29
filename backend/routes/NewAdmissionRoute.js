@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
-const NewAdmission = require("../models/StudentAdmissionSchema");
-const Transport = require("../models/TransportNewSchema");
+const Transport = require("../schemas/TransportSchema");
+const NewAdmission = require("../schemas/StudentAdmissionSchema");
 router.get("/students", async (req, res) => {
   try {
     const students = await NewAdmission.find().select("-__v");
@@ -211,6 +211,7 @@ router.delete("/student/:id", async (req, res) => {
 });
 router.post("/assigntransport", async (req, res) => {
   const { studentId, vehicleNumber } = req.body;
+  console.log(req.body, "bbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
   if (!studentId || !vehicleNumber)
     return res.status(400).json({ status: "FAIL", message: "Missing fields" });
   try {
@@ -239,32 +240,42 @@ router.post("/assigntransport", async (req, res) => {
     }
     student.transportVehicle = vehicle.vehicleNumber;
     await student.save();
+    await Transport.updateOne(
+      { vehicleNumber: vehicle.vehicleNumber },
+      { $push: { assignedStudentIds: student._id.toString() } }
+    );
     return res.json({ status: "PASS", message: "Assigned successfully!" });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ status: "FAIL", message: "Server error" });
   }
 });
-router.get("/students/vehicle/:vehicleNumber", async (req, res) => {
+router.get("/students/:vehicleNumber", async (req, res) => {
+  const { vehicleNumber } = req.params;
   try {
-    const { vehicleNumber } = req.params;
-    const students = await NewAdmission.find({
-      transportVehicle: vehicleNumber,
-    }).select("-__v");
-    if (students.length === 0) {
-      return res.status(404).json({
-        status: "FAIL",
-        message: "No students found for this vehicle",
-      });
+    const vehicle = await Transport.findOne({ vehicleNumber });
+    if (!vehicle) {
+      return res
+        .status(404)
+        .json({ status: "FAIL", message: "Vehicle not found" });
     }
-    return res.status(200).json({
+    const studentIds = vehicle.assignedStudentIds;
+    const students = await NewAdmission.find({
+      _id: { $in: studentIds },
+    });
+    res.json({
       status: "PASS",
-      count: students.length,
+      vehicle: {
+        vehicleNumber: vehicle.vehicleNumber,
+        driverName: vehicle.driverName,
+        size: vehicle.size,
+        totalStudents: students.length,
+      },
       students,
     });
   } catch (err) {
-    console.error("Error fetching students by vehicle:", err.message);
-    return res.status(500).json({ status: "FAIL", message: "Server error" });
+    console.error(err);
+    res.status(500).json({ status: "FAIL", message: "Server error" });
   }
 });
 module.exports = router;

@@ -59,14 +59,10 @@ const studentAdmissionSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    transportOpted: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "TransportNew",
-      default: null,
-    },
     transportVehicle: {
       type: String,
       default: null,
+      
     },
   },
   {

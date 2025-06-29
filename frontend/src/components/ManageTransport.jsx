@@ -13,9 +13,9 @@ const ManageTransport = () => {
   useEffect(() => {
     const fetchTransports = async () => {
       try {
-        const res = await fetch("http://localhost:1111/transport/");
+        const res = await fetch("http://localhost:1111/transport/transports");
         const data = await res.json();
-        setTransportData(data || []);
+        setTransportData(data.transports || []);
       } catch (error) {
         setMessage({ type: "danger", text: "Failed to load transport data." });
       } finally {

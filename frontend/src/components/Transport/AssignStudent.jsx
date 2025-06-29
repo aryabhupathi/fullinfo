@@ -5,6 +5,7 @@ const AssignStudent = ({ transport, onClose }) => {
     destination: "",
     mobileNumber: "",
     className: "",
+    studentId: "",
   });
   const [errors, setErrors] = useState({});
   const [message, setMessage] = useState("");
@@ -40,13 +41,13 @@ const AssignStudent = ({ transport, onClose }) => {
         name
       )}`;
       const response = await fetch(url);
-      console.log(response, "rrrrrrrrrrrrrrrrrrr");
       if (!response.ok) throw new Error("Network response was not ok");
       const data = await response.json();
       if (data.status !== "PASS") throw new Error("Student not found");
       const { student } = data;
       setFormData((prev) => ({
         ...prev,
+        studentId: student._id,
         mobileNumber: student.mobileNumber?.toString() || "",
         className: student.className || "",
       }));
@@ -54,6 +55,7 @@ const AssignStudent = ({ transport, onClose }) => {
       console.error("Error fetching student:", error.message);
       setFormData((prev) => ({
         ...prev,
+        studentId: "",
         mobileNumber: "",
         className: "",
       }));
@@ -66,6 +68,10 @@ const AssignStudent = ({ transport, onClose }) => {
     const validationErrors = validate();
     setErrors(validationErrors);
     if (Object.keys(validationErrors).length > 0) return;
+    if (!formData.studentId) {
+      setMessage("Please select a valid student.");
+      return;
+    }
     try {
       const response = await fetch(
         "http://localhost:1111/admission/assigntransport",
@@ -73,13 +79,12 @@ const AssignStudent = ({ transport, onClose }) => {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            studentName: formData.studentName,
+            studentId: formData.studentId,
             vehicleNumber: transport.vehicleNumber,
           }),
         }
       );
       const data = await response.json();
-      console.log(data, "dddddddddddddddddddddd");
       if (data.status === "PASS") {
         setMessage("Student assigned successfully!");
         setTimeout(() => {
