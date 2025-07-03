@@ -8,10 +8,6 @@ const PaymentSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
-  transactionId: {
-    type: String,
-    default: "manual",
-  },
 });
 const FeePayment = new mongoose.Schema({
   studentName: {

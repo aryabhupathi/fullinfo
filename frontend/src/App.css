@@ -21,18 +21,27 @@
 .App-link {
   color: #61dafb;
 }
-.nav-link{
+.nav-link {
   color: red;
 }
 .datepicker {
-    width: 100%;
+  width: 100%;
+}
+.bg-gradient {
+  background: linear-gradient(to right, #00c6ff, #0072ff);
+}
+.card-header {
+  font-weight: bold;
+}
+.table th {
+  background-color: #007bff;
+  color: white;
 }
 .card:focus-within {
-  box-shadow: 0 0 0.5rem 0.25rem rgba(13, 110, 253, 0.25); /* Bootstrap primary */
+  box-shadow: 0 0 0.5rem 0.25rem rgba(13, 110, 253, 0.25);
   border: 1px solid #0d6efd;
 }
-
-th{
+th {
   white-space: nowrap;
 }
 @keyframes App-logo-spin {

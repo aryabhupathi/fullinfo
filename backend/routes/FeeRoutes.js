@@ -51,7 +51,6 @@ router.post("/payfee", async (req, res) => {
       rollNumber,
       activity,
       paidAmount = 0,
-      transactionId = "manual_update",
       ...rest
     } = req.body;
     let record = await FeePayment.findOne({ rollNumber, activity });
@@ -72,7 +71,7 @@ router.post("/payfee", async (req, res) => {
         activity,
         paidAmount,
         balance: rest.totalFee - paidAmount,
-        paymentHistory: [{ amount: paidAmount, transactionId }],
+        paymentHistory: [{ amount: paidAmount }],
       });
       await newRecord.save();
       return res.status(201).json(newRecord);
@@ -85,7 +84,6 @@ router.post("/payfee", async (req, res) => {
     record.paymentHistory.push({
       amount: paidAmount,
       paymentDate: new Date(),
-      transactionId,
     });
     await record.save();
     return res.status(200).json(record);

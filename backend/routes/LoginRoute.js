@@ -40,7 +40,7 @@ router.post("/login", async (req, res) => {
         .status(401)
         .json({ status: "FAIL", message: "Invalid credentials" });
     }
-    const token = Date.now().toString(); // simple session-like token
+    const token = Date.now().toString(); 
     user.token = token;
     await user.save();
     res.status(200).json({
