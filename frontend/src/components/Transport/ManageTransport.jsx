@@ -24,7 +24,7 @@ const ManageTransport = () => {
   useEffect(() => {
     const fetchTransports = async () => {
       try {
-        const res = await fetch("http://localhost:1111/transport/transports");
+        const res = await fetch("http://localhost:1111/transport");
         const data = await res.json();
         setTransportData(data.transports || []);
       } catch (error) {

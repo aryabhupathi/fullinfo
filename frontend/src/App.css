@@ -10,6 +10,12 @@
     animation: App-logo-spin infinite 20s linear;
   }
 }
+.datepicker .react-datepicker-wrapper {
+  display: block;
+}
+.react-datepicker__input-container input {
+  width: 100%;
+}
 .App-header {
   background-color: #282c34;
   display: flex;

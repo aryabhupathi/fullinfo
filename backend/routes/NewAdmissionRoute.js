@@ -1,30 +1,44 @@
 const express = require("express");
 const router = express.Router();
-const Transport = require("../schemas/TransportSchema");
 const NewAdmission = require("../schemas/StudentAdmissionSchema");
+const Transport = require("../schemas/TransportSchema");
+const Activity = require("../schemas/ActivitySchema");
+const FeePayment = require("../schemas/FeeSchema");
 router.get("/students", async (req, res) => {
   try {
-    const students = await NewAdmission.find().select("-__v");
-    res.status(200).json({ count: students.length, students });
+    const students = await NewAdmission.find()
+      .select("-__v")
+      .populate("enrolledActivities")
+      .populate("feePayments");
+    res.status(200).json({
+      count: students.length,
+      students,
+    });
   } catch (err) {
-    res
-      .status(500)
-      .json({ message: "Failed to fetch students", error: err.message });
+    res.status(500).json({
+      message: "Failed to fetch students",
+      error: err.message,
+    });
   }
 });
 router.get("/student/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const student = await NewAdmission.findById(id).select("-__v");
+    const student = await NewAdmission.findById(id)
+      .select("-__v")
+      .populate("enrolledActivities")
+      .populate("feePayments");
     if (!student)
       return res
         .status(404)
         .json({ status: "FAIL", message: "Student not found" });
     res.status(200).json({ status: "PASS", student });
   } catch (err) {
-    res
-      .status(500)
-      .json({ status: "FAIL", message: "Server error", error: err.message });
+    res.status(500).json({
+      status: "FAIL",
+      message: "Server error",
+      error: err.message,
+    });
   }
 });
 router.get("/student", async (req, res) => {
@@ -38,17 +52,17 @@ router.get("/student", async (req, res) => {
     }
     const student = await NewAdmission.findOne({
       studentName: { $regex: new RegExp(`^${name}$`, "i") },
-    }).select("-__v");
+    })
+      .select("-__v")
+      .populate("enrolledActivities")
+      .populate("feePayments");
     if (!student) {
       return res.status(404).json({
         status: "FAIL",
         message: "Student not found",
       });
     }
-    res.status(200).json({
-      status: "PASS",
-      student,
-    });
+    res.status(200).json({ status: "PASS", student });
   } catch (err) {
     console.error("Error fetching student:", err.message);
     res.status(500).json({
@@ -70,7 +84,6 @@ router.post("/newAdmission", async (req, res) => {
       sectionName,
       dateofbirth,
       dateofadmission,
-      securityNumber,
       address,
       needTransport,
     } = req.body;
@@ -134,12 +147,10 @@ router.post("/newAdmission", async (req, res) => {
       rollNumber: new RegExp(`^${baseRollPrefix}\\d{3}$`),
     }).sort({ rollNumber: -1 });
     let nextSeq = 1;
-    if (lastStudent && lastStudent.rollNumber) {
+    if (lastStudent?.rollNumber) {
       const seqPart = lastStudent.rollNumber.slice(-3);
       const seq = parseInt(seqPart, 10);
-      if (!isNaN(seq)) {
-        nextSeq = seq + 1;
-      }
+      if (!isNaN(seq)) nextSeq = seq + 1;
     }
     const rollNumber = `${baseRollPrefix}${String(nextSeq).padStart(3, "0")}`;
     const newStudent = new NewAdmission({
@@ -153,11 +164,7 @@ router.post("/newAdmission", async (req, res) => {
       student: newStudent,
     });
   } catch (err) {
-    console.error({
-      message: err.message,
-      stack: err.stack,
-      body: req.body,
-    });
+    console.error(err);
     return res.status(500).json({
       status: "FAIL",
       message: "Failed to create admission",
@@ -200,6 +207,7 @@ router.delete("/student/:id", async (req, res) => {
         .status(404)
         .json({ status: "FAIL", message: "Student not found" });
     }
+    await FeePayment.deleteMany({ student: id });
     return res.status(200).json({
       status: "PASS",
       message: "Student deleted successfully",
@@ -211,7 +219,6 @@ router.delete("/student/:id", async (req, res) => {
 });
 router.post("/assigntransport", async (req, res) => {
   const { studentId, vehicleNumber } = req.body;
-  console.log(req.body, "bbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
   if (!studentId || !vehicleNumber)
     return res.status(400).json({ status: "FAIL", message: "Missing fields" });
   try {
@@ -234,15 +241,16 @@ router.post("/assigntransport", async (req, res) => {
       large: 40,
     };
     if (studentCount >= capacityMap[vehicle.size]) {
-      return res
-        .status(400)
-        .json({ status: "FAIL", message: "Vehicle at full capacity!" });
+      return res.status(400).json({
+        status: "FAIL",
+        message: "Vehicle at full capacity!",
+      });
     }
     student.transportVehicle = vehicle.vehicleNumber;
     await student.save();
     await Transport.updateOne(
-      { vehicleNumber: vehicle.vehicleNumber },
-      { $push: { assignedStudentIds: student._id.toString() } }
+      { vehicleNumber },
+      { $addToSet: { assignedStudentIds: student._id } }
     );
     return res.json({ status: "PASS", message: "Assigned successfully!" });
   } catch (err) {
@@ -259,11 +267,10 @@ router.get("/students/:vehicleNumber", async (req, res) => {
         .status(404)
         .json({ status: "FAIL", message: "Vehicle not found" });
     }
-    const studentIds = vehicle.assignedStudentIds;
     const students = await NewAdmission.find({
-      _id: { $in: studentIds },
+      _id: { $in: vehicle.assignedStudentIds },
     });
-    res.json({
+    return res.status(200).json({
       status: "PASS",
       vehicle: {
         vehicleNumber: vehicle.vehicleNumber,
@@ -275,7 +282,73 @@ router.get("/students/:vehicleNumber", async (req, res) => {
     });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ status: "FAIL", message: "Server error" });
+    return res.status(500).json({ status: "FAIL", message: "Server error" });
+  }
+});
+router.post("/enrollactivity", async (req, res) => {
+  const { studentId, activityId } = req.body;
+  if (!studentId || !activityId)
+    return res.status(400).json({ status: "FAIL", message: "Missing fields" });
+  try {
+    const student = await NewAdmission.findById(studentId);
+    const activity = await Activity.findById(activityId);
+    if (!student || !activity)
+      return res.status(404).json({
+        status: "FAIL",
+        message: "Student or Activity not found",
+      });
+    if (!student.enrolledActivities.includes(activity._id)) {
+      student.enrolledActivities.push(activity._id);
+      await student.save();
+    }
+    return res.status(200).json({
+      status: "PASS",
+      message: "Enrolled successfully!",
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ status: "FAIL", message: "Server error" });
+  }
+});
+router.get("/student/report/:rollNumber", async (req, res) => {
+  const { rollNumber } = req.params;
+  try {
+    const student = await NewAdmission.findOne({ rollNumber })
+      .populate("enrolledActivities")
+      .populate("feePayments");
+    if (!student)
+      return res.status(404).json({
+        status: "FAIL",
+        message: "Student not found",
+      });
+    const report = {
+      studentName: student.studentName,
+      rollNumber: student.rollNumber,
+      className: `${student.className} - ${student.sectionName}`,
+      activities: [],
+    };
+    student.enrolledActivities.forEach((act) => {
+      const feeRecord = student.feePayments.find(
+        (fp) => fp.activity === act.activityName
+      );
+      report.activities.push({
+        name: act.activityName,
+        fee: act.fee,
+        paid: feeRecord?.paidAmount || 0,
+        balance: feeRecord?.balance || act.fee,
+        status: feeRecord?.status || "Not Paid",
+        dueDate: feeRecord?.dueDate
+          ? new Date(feeRecord.dueDate).toLocaleDateString()
+          : "-",
+      });
+    });
+    return res.status(200).json({
+      status: "PASS",
+      report,
+    });
+  } catch (err) {
+    console.error("Error generating report:", err.message);
+    return res.status(500).json({ status: "FAIL", message: "Server error" });
   }
 });
 module.exports = router;

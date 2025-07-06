@@ -3,8 +3,8 @@ const ExamSchema = new mongoose.Schema(
   {
     examType: { type: String, required: true },
     examName: { type: String, required: true },
-    examDate: { type: Date, required: true },
-    examFee: { type: Number, required: true },
+    date: { type: Date, required: true },
+    fee: { type: Number, required: true },
     classConductedFor: { type: String, required: true },
     reportingOfficer: { type: String, required: true },
     examSubject: { type: String, required: true },

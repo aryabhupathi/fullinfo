@@ -23,6 +23,7 @@ const studentAdmissionSchema = new mongoose.Schema(
     aadharNumber: {
       type: Number,
       required: true,
+      unique: true,
     },
     rollNumber: {
       type: String,
@@ -62,12 +63,24 @@ const studentAdmissionSchema = new mongoose.Schema(
     transportVehicle: {
       type: String,
       default: null,
-      
     },
+    enrolledActivities: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Activities",
+      },
+    ],
   },
   {
     timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
   }
 );
+studentAdmissionSchema.virtual("feePayments", {
+  ref: "FeePayment",
+  localField: "_id",
+  foreignField: "student",
+});
 studentAdmissionSchema.index({ transportVehicle: 1 });
 module.exports = mongoose.model("NewAdmissions", studentAdmissionSchema);

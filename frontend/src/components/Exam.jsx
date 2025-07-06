@@ -14,8 +14,8 @@ const Exam = () => {
   const [formData, setFormData] = useState({
     examType: "",
     examName: "",
-    examDate: "",
-    examFee: "",
+    date: "",
+    fee: "",
     classConductedFor: "",
     reportingOfficer: "",
     examSubject: "",
@@ -51,14 +51,15 @@ const Exam = () => {
         },
         body: JSON.stringify(formData),
       });
+      console.log(res, "rrrrrrrrrrrrrrrrrrrr");
       if (!res.ok) throw new Error("Failed to submit");
       const newExam = await res.json();
       setExams([...exams, newExam]);
       setFormData({
         examType: "",
         examName: "",
-        examDate: "",
-        examFee: "",
+        date: "",
+        fee: "",
         classConductedFor: "",
         reportingOfficer: "",
         examSubject: "",
@@ -141,12 +142,12 @@ const Exam = () => {
               </Row>
               <Row className="mt-3 g-3">
                 <Col md={4}>
-                  <Form.Group controlId="examDate">
+                  <Form.Group controlId="date">
                     <Form.Label>Exam Date</Form.Label>
                     <Form.Control
                       type="date"
-                      name="examDate"
-                      value={formData.examDate}
+                      name="date"
+                      value={formData.date}
                       onChange={handleChange}
                       required
                       className="border rounded-pill"
@@ -154,12 +155,12 @@ const Exam = () => {
                   </Form.Group>
                 </Col>
                 <Col md={4}>
-                  <Form.Group controlId="examFee">
+                  <Form.Group controlId="fee">
                     <Form.Label>Exam Fee</Form.Label>
                     <Form.Control
                       type="number"
-                      name="examFee"
-                      value={formData.examFee}
+                      name="fee"
+                      value={formData.fee}
                       onChange={handleChange}
                       placeholder="Enter fee"
                       required
@@ -259,14 +260,14 @@ const Exam = () => {
                   </td>
                   <td>
                     <Badge bg="secondary" pill>
-                      {new Date(exam.examDate).toLocaleDateString()}
+                      {new Date(exam.date).toLocaleDateString()}
                     </Badge>
                   </td>
                   <td className="fw-semibold">{exam.examName}</td>
                   <td>{exam.classConductedFor}</td>
                   <td>{exam.examSubject}</td>
                   <td>{exam.reportingOfficer}</td>
-                  <td>${exam.examFee}</td>
+                  <td>{exam.fee}</td>
                 </tr>
               ))}
             </tbody>

@@ -11,7 +11,7 @@ router.post("/addTransport", async (req, res) => {
     res.status(400).json({ status: "FAIL", message: error.message });
   }
 });
-router.get("/transports", async (req, res) => {
+router.get("/", async (req, res) => {
   try {
     const transports = await Transport.find().select("-__v");
     res.status(200).json({ count: transports.length, transports });

@@ -1,7 +1,7 @@
-
 import React, { useState } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import Alert from "react-bootstrap/Alert";
 const NewAdmission = () => {
   const [formData, setFormData] = useState({
     studentName: "",
@@ -16,6 +16,7 @@ const NewAdmission = () => {
     address: "",
     fathermobileNumber: "",
     needTransport: "",
+    transportVehicle: "",
   });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
@@ -52,9 +53,6 @@ const NewAdmission = () => {
     } = formData;
     if (!studentName.trim()) {
       newErrors.studentName = "Student name is required";
-      hasError = true;
-    } else if (!/^[a-zA-Z\s]+$/.test(studentName.trim())) {
-      newErrors.studentName = "Only letters and spaces allowed in name";
       hasError = true;
     }
     if (!dateofbirth) {
@@ -112,7 +110,6 @@ const NewAdmission = () => {
         dateofbirth: formData.dateofbirth?.toISOString().split("T")[0],
         dateofadmission: formData.dateofadmission?.toISOString().split("T")[0],
       };
-      console.log(payload, "plplplplplplplplplpplplplpl")
       const response = await fetch(
         "http://localhost:1111/admission/newAdmission",
         {
@@ -128,14 +125,17 @@ const NewAdmission = () => {
         setMessage("Registration successful!");
         setIsError(false);
         handleReset();
+        window.scrollTo({ top: 0, behavior: "smooth" });
         setTimeout(() => setMessage(""), 5000);
       } else {
         setMessage("Registration failed. Please try again");
         setIsError(true);
+        window.scrollTo({ top: 0, behavior: "smooth" });
       }
     } catch (error) {
       setMessage(`Server error: ${error.message}`);
       setIsError(true);
+      window.scrollTo({ top: 0, behavior: "smooth" });
     } finally {
       setLoading(false);
     }
@@ -154,35 +154,27 @@ const NewAdmission = () => {
       address: "",
       fathermobileNumber: "",
       needTransport: "",
+      transportVehicle: "",
     });
     setErrors({});
     setMessage("");
   };
   return (
-    <div className="container mt-3 mb-3">
-      {isError && (
-        <div
-          className={`alert alert-${
-            isError ? "danger" : "success"
-          } text-center`}
-          role="alert"
-        >
+    <div className="container mt-5 mb-5">
+      {message && (
+        <Alert variant={isError ? "danger" : "success"} className="text-center">
           {message}
-        </div>
+        </Alert>
       )}
-      <div className="col-12 text-center mb-4">
-        <h2 className="text-primary fw-bold display-6">
-          <i className="bi bi-person-plus-fill me-2"></i>New Admission Gnanianaianian
-        </h2>
-        <p className="text-danger fw-semibold">
-          * Marked fields are mandatory!
-        </p>
-      </div>
+      <h2 className="text-center text-primary fw-bold mb-4">
+        <i className="bi bi-person-plus-fill me-2"></i>New Admission
+      </h2>
+      <p className="text-danger text-center">* Marked fields are mandatory!</p>
       <form onSubmit={handleSubmit}>
         <div className="row">
           <div className="col-md-6">
             <div className="card h-100 shadow-sm border-0 student-card">
-              <div className="card-header bg-info text-white fw-bold">
+              <div className="card-header text-black fw-bold">
                 Student Details
               </div>
               <div className="card-body">
