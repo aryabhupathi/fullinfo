@@ -87,8 +87,8 @@ const NewAdmission = () => {
       newErrors.aadharNumber = "Enter a valid 12-digit Aadhar number";
       hasError = true;
     }
-    if (!address || address.trim().length < 10) {
-      newErrors.address = "Address must be at least 10 characters";
+    if (!address || address.trim().length < 5) {
+      newErrors.address = "Address must be at least 5 characters";
       hasError = true;
     }
     if (!needTransport) {

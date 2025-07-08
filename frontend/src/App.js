@@ -1,5 +1,5 @@
 import "./App.css";
-import Layout from "./components/Layout";
+import Layout from "./components/Layout/Layout";
 import Dashboard from "./components/Dashboard";
 import Exam from "./components/Exam";
 import FeePayment from "./components/Fee/FeePayment";

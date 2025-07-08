@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { HiDocumentReport } from "react-icons/hi";
 import { IoIosPeople } from "react-icons/io";
@@ -34,7 +34,7 @@ const Dashboard = () => {
           activity: activityData.count || 0,
           exam: examData.count || 0,
           student: studentData.count || 0,
-          transport: studentData.count || 0, // Assuming same API used for transport
+          transport: studentData.count || 0,
         });
       } catch (err) {
         console.error("Error fetching dashboard data:", err);
@@ -48,87 +48,96 @@ const Dashboard = () => {
     {
       title: "Total Students",
       icon: <RiGraduationCapFill />,
-      color: "primary",
+      bg: "linear-gradient(135deg, #1A237E, #3949AB)",
       count: counts.student,
       route: "/admission/list",
     },
     {
       title: "New Admissions",
       icon: <IoMdAdd />,
-      color: "success",
+      bg: "linear-gradient(135deg, #2E7D32, #66BB6A)",
       count: 150,
       route: "/admissions",
     },
     {
       title: "Pending Fees",
       icon: <TbMoneybag />,
-      color: "warning",
+      bg: "linear-gradient(135deg, #F57F17, #F9A825)",
       count: 75,
       route: "/fees",
     },
     {
       title: "Transport Users",
       icon: <FaShuttleVan />,
-      color: "info",
+      bg: "linear-gradient(135deg, #0288D1, #26C6DA)",
       count: counts.transport,
       route: "/transport",
     },
     {
       title: "Upcoming Exams",
       icon: <CgNotes />,
-      color: "danger",
+      bg: "linear-gradient(135deg, #C62828, #EF5350)",
       count: counts.exam,
       route: "/exam",
     },
     {
       title: "Activities",
       icon: <FcRating />,
-      color: "secondary",
+      bg: "linear-gradient(135deg, #6A1B9A, #AB47BC)",
       count: counts.activity,
       route: "/activities",
     },
     {
       title: "Staff Members",
       icon: <IoIosPeople />,
-      color: "dark",
+      bg: "linear-gradient(135deg, #37474F, #607D8B)",
       count: 85,
       route: "/staff",
     },
     {
       title: "Complaints",
       icon: <HiDocumentReport />,
-      color: "danger",
+      bg: "linear-gradient(135deg, #D32F2F, #F44336)",
       count: 7,
       route: "/complaints",
     },
   ];
   return (
-    <div className="d-flex justify-content-center">
-      <div className="container text-center mt-4">
-        <h2 className="mb-4 fw-bold">Dashboard</h2>
-        <div className="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4 justify-content-center">
-          {cards.map((card, index) => (
-            <div key={index} className="col">
-              <div
-                className={`card text-white bg-${card.color} h-100 shadow cursor-pointer`}
-                style={{ cursor: "pointer" }}
-                onClick={() => navigate(card.route)}
-              >
-                <div className="card-body d-flex flex-column justify-content-between">
-                  <div className="d-flex justify-content-between align-items-center">
-                    <div className="fs-2">{card.icon}</div>
-                    <div className="text-end">
-                      <h5 className="card-title mb-0">{card.title}</h5>
-                      <p className="fs-4 fw-bold">
-                        {loading ? "..." : card.count}
-                      </p>
-                    </div>
+    <div className="container py-4">
+      <h2 className="text-center fw-bold mb-4" style={{ color: "#1A237E" }}>
+        Dashboard Overview
+      </h2>
+      <div className="row g-4">
+        {cards.map((card, index) => (
+          <div className="col-12 col-sm-6 col-lg-3" key={index}>
+            <div
+              className="card text-white shadow-lg border-0 h-100"
+              style={{
+                background: card.bg,
+                cursor: "pointer",
+                borderRadius: "16px",
+                transition: "transform 0.2s ease",
+              }}
+              onClick={() => navigate(card.route)}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.transform = "scale(1.03)")
+              }
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.transform = "scale(1)")
+              }
+            >
+              <div className="card-body d-flex flex-column justify-content-center">
+                <div className="d-flex justify-content-between align-items-center">
+                  <div className="fs-1">{card.icon}</div>
+                  <div className="text-end">
+                    <h6 className="mb-1">{card.title}</h6>
+                    <h4 className="fw-bold">{loading ? "..." : card.count}</h4>
                   </div>
                 </div>
               </div>
             </div>
-          ))}
-        </div>
+          </div>
+        ))}
       </div>
     </div>
   );

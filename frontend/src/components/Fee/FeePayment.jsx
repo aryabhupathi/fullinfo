@@ -154,12 +154,12 @@ const FeePayment = () => {
           }));
         }
       } else if (name === "transport") {
-        selected = transportData.find((tr) => tr.size === value);
+        selected = transportData.transports.find((tr) => tr.size === value);
         if (selected) {
           setFormData((prev) => ({
             ...prev,
-            totalFee: selected.transportFee || "",
-            dueDate: formatDate(selected.date),
+            totalFee: selected.fee || "",
+            dueDate: "2025-08-30"
           }));
         }
       } else if (name === "term") {

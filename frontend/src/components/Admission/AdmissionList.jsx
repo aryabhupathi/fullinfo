@@ -1,7 +1,17 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 const formatDate = (isoDate) => {
   const date = new Date(isoDate);
   return isNaN(date.getTime()) ? "" : date.toLocaleDateString("en-GB");
+};
+const useDebounce = (value, delay) => {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+    return () => clearTimeout(handler);
+  }, [value, delay]);
+  return debouncedValue;
 };
 const AdmissionList = () => {
   const [admissionList, setAdmissionList] = useState([]);
@@ -10,15 +20,19 @@ const AdmissionList = () => {
   const [filters, setFilters] = useState({
     name: "",
     rollnumber: "",
-    className:"",
+    className: "",
   });
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+  const debouncedName = useDebounce(filters.name, 300);
+  const debouncedRoll = useDebounce(filters.rollnumber, 300);
+  const debouncedClass = useDebounce(filters.className, 300);
+  const debouncedSection = useDebounce(filters.sectionName, 300);
   useEffect(() => {
     fetch("http://localhost:1111/admission/students")
       .then((res) => res.json())
       .then((data) => {
-        setAdmissionList(data.students);
+        setAdmissionList(data.students || []);
         setLoading(false);
       })
       .catch((error) => {
@@ -26,27 +40,39 @@ const AdmissionList = () => {
         setLoading(false);
       });
   }, []);
-  const filteredData = admissionList.filter((student) => {
-  const matchesName =
-    filters.name === "" ||
-    (student.studentName
-      ?.toLowerCase()
-      .includes(filters.name.toLowerCase()) ?? false);
-  const matchesClass =
-    filters.className === "" ||
-    (student.className
-      ?.toString()
-      .toLowerCase()
-      .includes(filters.className.toLowerCase()) ?? false);
-  const rollMatches =
-    filters.rollnumber === "" ||
-    (student.rollNumber
-      ?.toLowerCase()
-      .includes(filters.rollnumber.toLowerCase()) ?? false);
-
-  return matchesName && matchesClass && rollMatches;
-});
-const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+  const filteredData = useMemo(() => {
+    if (!admissionList.length) return [];
+    return admissionList.filter((student) => {
+      const nameMatch =
+        !debouncedName ||
+        student.studentName
+          ?.toLowerCase()
+          .includes(debouncedName.toLowerCase());
+      const classMatch =
+        !debouncedClass ||
+        student.className
+          ?.toString()
+          .toLowerCase()
+          .includes(debouncedClass.toLowerCase());
+      const sectionMatch =
+        !debouncedClass ||
+        student.sectionName
+          ?.toString()
+          .toLowerCase()
+          .includes(debouncedSection.toLowerCase());
+      const rollMatch =
+        !debouncedRoll ||
+        student.rollNumber?.toLowerCase().includes(debouncedRoll.toLowerCase());
+      return nameMatch && classMatch && rollMatch && sectionMatch;
+    });
+  }, [
+    admissionList,
+    debouncedName,
+    debouncedRoll,
+    debouncedClass,
+    debouncedSection,
+  ]);
+  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
   const goToNextPage = () => {
     if (currentPage < totalPages) setCurrentPage(currentPage + 1);
   };
@@ -63,19 +89,20 @@ const totalPages = Math.ceil(filteredData.length / itemsPerPage);
   };
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
-    setFilters({ ...filters, [name]: value });
+    setFilters((prev) => ({ ...prev, [name]: value }));
     setCurrentPage(1);
   };
   return (
     <div className="container-fluid mt-4">
-    <div className="d-flex justify-content-between">
-      <h2>Admission List</h2>
-      <button
-        className="btn btn-secondary mb-3"
-        onClick={() => setOpenFilters(!openFilters)}
-      >
-        {openFilters ? "Hide Filters" : "Show Filters"}
-      </button></div>
+      <div className="d-flex justify-content-between">
+        <h2>Admission List</h2>
+        <button
+          className="btn btn-secondary mb-3"
+          onClick={() => setOpenFilters(!openFilters)}
+        >
+          {openFilters ? "Hide Filters" : "Show Filters"}
+        </button>
+      </div>
       {openFilters && (
         <div className="card p-3 mb-4">
           <div className="row">
@@ -98,7 +125,7 @@ const totalPages = Math.ceil(filteredData.length / itemsPerPage);
                 className="form-control"
                 value={filters.rollnumber}
                 onChange={handleFilterChange}
-                placeholder="Search by name"
+                placeholder="Search by roll number"
               />
             </div>
             <div className="col-md-3">
@@ -112,7 +139,17 @@ const totalPages = Math.ceil(filteredData.length / itemsPerPage);
                 placeholder="Filter by class"
               />
             </div>
-           
+            <div className="col-md-3">
+              <label>Section</label>
+              <input
+                type="text"
+                name="sectionName"
+                className="form-control"
+                value={filters.sectionName}
+                onChange={handleFilterChange}
+                placeholder="Filter by class"
+              />
+            </div>
           </div>
         </div>
       )}

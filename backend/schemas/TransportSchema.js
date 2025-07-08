@@ -38,6 +38,10 @@ const transportNewSchema = new mongoose.Schema(
         message: "{VALUE} is not supported. Use small, medium or large.",
       },
     },
+    fee: {
+      type: Number,
+      required: false, // optional; set by pre-hook
+    },
     assignedStudentIds: [
       {
         type: mongoose.Schema.Types.ObjectId,
@@ -72,4 +76,13 @@ transportNewSchema.methods.getAssignedStudents = async function () {
   });
   return students;
 };
+transportNewSchema.pre("save", function (next) {
+  const feeStructure = {
+    small: 500,
+    medium: 800,
+    large: 1000,
+  };
+  this.fee = feeStructure[this.size] || 0;
+  next();
+});
 module.exports = mongoose.model("TransportNew", transportNewSchema);

@@ -180,8 +180,6 @@
 //   );
 // };
 // export default AssignStudent;
-
-
 import React, { useState } from "react";
 import {
   Form,
@@ -191,7 +189,6 @@ import {
   Row,
   Col
 } from "react-bootstrap";
-
 const AssignStudent = ({ transport, onClose }) => {
   const [formData, setFormData] = useState({
     studentName: "",
@@ -203,7 +200,6 @@ const AssignStudent = ({ transport, onClose }) => {
   const [errors, setErrors] = useState({});
   const [message, setMessage] = useState({ type: "", text: "" });
   const [fetching, setFetching] = useState(false);
-
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -214,11 +210,9 @@ const AssignStudent = ({ transport, onClose }) => {
       fetchStudentData(value);
     }
   };
-
   const validate = () => {
     const newErrors = {};
     const mobileRegex = /^[0-9]{10}$/;
-
     if (!formData.studentName.trim())
       newErrors.studentName = "Student name is required.";
     if (!formData.destination.trim())
@@ -227,10 +221,8 @@ const AssignStudent = ({ transport, onClose }) => {
       newErrors.mobileNumber = "Mobile number is required.";
     else if (!mobileRegex.test(formData.mobileNumber))
       newErrors.mobileNumber = "Mobile number must be 10 digits.";
-
     return newErrors;
   };
-
   const fetchStudentData = async (name) => {
     if (!name.trim()) return;
     setFetching(true);
@@ -240,7 +232,6 @@ const AssignStudent = ({ transport, onClose }) => {
       if (!response.ok) throw new Error("Network response was not ok");
       const data = await response.json();
       if (data.status !== "PASS") throw new Error("Student not found");
-
       const { student } = data;
       setFormData((prev) => ({
         ...prev,
@@ -260,18 +251,15 @@ const AssignStudent = ({ transport, onClose }) => {
       setFetching(false);
     }
   };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     const validationErrors = validate();
     setErrors(validationErrors);
     if (Object.keys(validationErrors).length > 0) return;
-
     if (!formData.studentId) {
       setMessage({ type: "danger", text: "Please select a valid student." });
       return;
     }
-
     try {
       const response = await fetch(
         "http://localhost:1111/admission/assigntransport",
@@ -284,9 +272,7 @@ const AssignStudent = ({ transport, onClose }) => {
           }),
         }
       );
-
       const data = await response.json();
-
       if (data.status === "PASS") {
         setMessage({ type: "success", text: "Student assigned successfully!" });
         setTimeout(() => {
@@ -299,7 +285,6 @@ const AssignStudent = ({ transport, onClose }) => {
       setMessage({ type: "danger", text: "Server error: Could not assign student." });
     }
   };
-
   return (
     <Card className="shadow-sm border-0">
       <Card.Header className="bg-white border-bottom">
@@ -311,7 +296,6 @@ const AssignStudent = ({ transport, onClose }) => {
             {message.text}
           </Alert>
         )}
-
         <Form onSubmit={handleSubmit}>
           <Row className="g-3">
             <Col md={6}>
@@ -347,7 +331,6 @@ const AssignStudent = ({ transport, onClose }) => {
               </Form.Group>
             </Col>
           </Row>
-
           <Row className="mt-3 g-3">
             <Col md={6}>
               <Form.Group controlId="destination">
@@ -382,7 +365,6 @@ const AssignStudent = ({ transport, onClose }) => {
               </Form.Group>
             </Col>
           </Row>
-
           <div className="mt-4 d-flex gap-2">
             <Button type="submit" variant="primary" className="flex-grow-1 rounded-pill">
               Assign Student
@@ -396,5 +378,4 @@ const AssignStudent = ({ transport, onClose }) => {
     </Card>
   );
 };
-
 export default AssignStudent;
