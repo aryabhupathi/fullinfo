@@ -1,4 +1,4 @@
-import { Link, Outlet, useNavigate } from "react-router-dom";
+import { Link, Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import {
   FaHome,
@@ -6,161 +6,288 @@ import {
   FaBus,
   FaStar,
   FaUser,
-  FaChevronDown,
-  FaChevronRight,
+  FaBars,
 } from "react-icons/fa";
 import { MdAdd } from "react-icons/md";
 import { RiFileEditFill } from "react-icons/ri";
 import { IoSettingsOutline } from "react-icons/io5";
+import {
+  Navbar,
+  Nav,
+  Offcanvas,
+  Accordion,
+  Dropdown,
+  Button as BsButton,
+} from "react-bootstrap";
 const NavLink = ({ to, icon: Icon, label }) => {
-  const isActive = window.location.pathname === to;
+  const location = useLocation();
+  const isActive = location.pathname === to;
   return (
-    <Link
-      to={to}
-      className={`d-flex align-items-center gap-2 px-3 py-2 mb-2 nav-item rounded ${
-        isActive ? "active-nav" : ""
-      }`}
-      style={{ transition: "0.3s", textDecoration: "none", color: "inherit" }}
-    >
-      <Icon />
-      <span>{label}</span>
-    </Link>
+    <Nav.Link as={Link} to={to} className={isActive ? "active" : ""}>
+      <Icon /> <span>{label}</span>
+    </Nav.Link>
   );
 };
-const AccordionNav = ({ icon: Icon, label, items }) => {
-  const [open, setOpen] = useState(false);
-  const activeChild = items.some(
-    (item) => window.location.pathname === item.to
-  );
+const TopNavDropdown = ({ icon: Icon, label, items}) => {
+  const location = useLocation();
+  const isActive = items.some((item) => location.pathname === item.to);
   return (
-    <div className="accordion-nav mb-2">
-      <button
-        onClick={() => setOpen(!open)}
-        className={`w-100 d-flex justify-content-between align-items-center px-3 py-2 rounded border-0 bg-transparent text-white ${
-          activeChild ? "active-nav" : ""
+    <Dropdown>
+      <Dropdown.Toggle
+        as={Nav.Link}
+        className={`d-flex align-items-center gap-1 fw-bold ${
+          isActive ? "active" : ""
         }`}
-        style={{ fontSize: "0.95rem", textAlign: "left" }}
-        aria-expanded={open}
+        style={{ cursor: "pointer" }}
       >
-        <span className="d-flex align-items-center gap-2">
-          <Icon size={18} />
-          {label}
-        </span>
-        {open ? <FaChevronDown size={14} /> : <FaChevronRight size={14} />}
-      </button>
-      <div
-        className="sub-nav overflow-hidden"
-        style={{
-          maxHeight: open ? `${items.length * 40}px` : "0px",
-          transition: "max-height 0.4s ease",
+        <Icon /> <span>{label}</span>
+      </Dropdown.Toggle>
+      <Dropdown.Menu
+        className={`border-0 shadow`}
+        popperConfig={{
+          modifiers: [
+            {
+              name: "offset",
+              options: {
+                offset: [0, 10],
+              },
+            },
+          ],
         }}
       >
-        {items.map((item, i) => {
-          const isActive = window.location.pathname === item.to;
-          return (
-            <Link
+        {items.map((item, i) => (
+          <Dropdown.Item
+            key={i}
+            as={Link}
+            to={item.to}
+            className={` ${
+              location.pathname === item.to ? "fw-bold" : ""
+            }`}
+            onClick={item.onClick}
+          >
+            {item.label}
+          </Dropdown.Item>
+        ))}
+      </Dropdown.Menu>
+    </Dropdown>
+  );
+};
+const SidebarAccordion = ({ icon: Icon, label, items, onClose }) => {
+  const [open, setOpen] = useState(false);
+  const location = useLocation();
+  const activeChild = items.some((item) => location.pathname === item.to);
+  useEffect(() => {
+    if (activeChild) setOpen(true);
+  }, [location.pathname]);
+  return (
+    <Accordion defaultActiveKey={open ? "0" : ""}>
+      <Accordion.Item eventKey="0">
+        <Accordion.Header>
+          <Icon /> {label}
+        </Accordion.Header>
+        <Accordion.Body>
+          {items.map((item, i) => (
+            <Nav.Link
               key={i}
+              as={Link}
               to={item.to}
-              onClick={item.onClick}
-              className={`d-flex align-items-center gap-2 px-4 py-2 mb-1 nav-item rounded small ${
-                isActive ? "active-sublink" : ""
-              }`}
-              style={{
-                textDecoration: "none",
-                transition: "0.3s",
-                color: "white ",
-              }}
+              onClick={onClose}
+              className={location.pathname === item.to ? "active" : ""}
             >
               {item.label}
-            </Link>
-          );
-        })}
-      </div>
-    </div>
+            </Nav.Link>
+          ))}
+        </Accordion.Body>
+      </Accordion.Item>
+    </Accordion>
+  );
+};
+const AccountDropdown = () => {
+  const navigate = useNavigate();
+  const handleLogout = () => {
+    localStorage.clear();
+    navigate("/");
+  };
+  return (
+    <Dropdown align="end">
+      <Dropdown.Toggle
+        as={Nav.Link}
+        className="d-flex align-items-center text-white p-0"
+        style={{ width: "40px", height: "40px" }}
+      >
+        <FaUser size={20} />
+      </Dropdown.Toggle>
+      <Dropdown.Menu className="shadow border-0">
+        <Dropdown.Item as={Link} to="/profile">
+          Profile
+        </Dropdown.Item>
+        <Dropdown.Item as={Link} to="/" onClick={handleLogout}>
+          Logout
+        </Dropdown.Item>
+      </Dropdown.Menu>
+    </Dropdown>
   );
 };
 const Layout = () => {
   const navigate = useNavigate();
   const name = localStorage.getItem("name") || "Guest";
+  const [showSidebar, setShowSidebar] = useState(false);
   const handleLogout = () => {
     localStorage.clear();
     navigate("/");
   };
-  const [fadeIn, setFadeIn] = useState(false);
-  useEffect(() => {
-    setFadeIn(true);
-  }, []);
   return (
-    <div className="d-flex">
-      <div className={`sidebar glassy p-4 rounded-right`}>
-        <h4 className="text-warning fw-bold mb-4">SBIC Panel</h4>
-        <NavLink to="/dashboard" icon={FaHome} label="Dashboard" />
-        <AccordionNav
-          icon={MdAdd}
-          label="Admissions"
-          items={[
-            { label: "New Admission", to: "/admission/new" },
-            { label: "Admission List", to: "/admission/list" },
-          ]}
-        />
-        <AccordionNav
-          icon={FaSuitcase}
-          label="Fee"
-          items={[
-            { label: "Pay Fees", to: "/fee_payment/pay" },
-            { label: "Fee History", to: "/fee_payment/history" },
-          ]}
-        />
-        <AccordionNav
-          icon={FaBus}
-          label="Transport"
-          items={[
-            { label: "New Transport", to: "/transport/newTransport" },
-            { label: "Transport Users", to: "/transport/users" },
-          ]}
-        />
-        <NavLink to="/exam" icon={RiFileEditFill} label="Exam" />
-        <NavLink to="/activity" icon={FaStar} label="Activity" />
-        <AccordionNav
-          icon={IoSettingsOutline}
-          label="Admin"
-          items={[
-            { label: "User Management", to: "/admin/users" },
-            { label: "Settings", to: "/admin/settings" },
-          ]}
-        />
-        <AccordionNav
-          icon={FaUser}
-          label="Account"
-          items={[
-            { label: "Profile", to: "/profile" },
-            {
-              label: "Logout",
-              to: "/",
-              onClick: handleLogout,
-            },
-          ]}
-        />
-        <div className="text-center mt-4">
-          <button
-            className="btn btn-sm btn-outline-light"
-            onClick={handleLogout}
-          >
-            Logout
-          </button>
-        </div>
+    <div className="d-flex flex-column min-vh-100 bg-light">
+      <div className="p-2 rounded shadow-sm bg-white d-flex justify-content-between">
+        <small>
+          Need help? Call <b>+91-6303460916</b>
+        </small>
+        <h5>
+          👋 Welcome, <strong>{name}</strong>
+        </h5>
       </div>
-      <div
-        className={`content-area flex-grow-1 p-4 ${fadeIn ? "fade-in" : ""}`}
+      <Navbar
+        expand="lg"
+        className="text-white shadow-sm px-3 py-2 top-navbar d-flex align-items-center justify-content-between"
       >
-        <div className="bg-white rounded shadow p-3 mb-3">
-          <h5 className="mb-0">
-            👋 Welcome, <strong>{name}</strong>
-          </h5>
-          <small>
-            Need help? Call <b>+91-6303460916</b>
-          </small>
+        <Navbar.Brand href="/dashboard" className="logo fw-bold">
+          SBIC Panel
+        </Navbar.Brand>
+        <Nav className="d-none d-lg-flex flex-grow-1 justify-content-center gap-3">
+          <NavLink to="/dashboard" icon={FaHome} label="Dashboard" />
+          <TopNavDropdown
+            icon={MdAdd}
+            label="Admissions"
+            items={[
+              { label: "New Admission", to: "/admission/new" },
+              { label: "Admission List", to: "/admission/list" },
+            ]}
+          />
+          <TopNavDropdown
+            icon={FaSuitcase}
+            label="Fee"
+            items={[
+              { label: "Pay Fees", to: "/fee_payment/pay" },
+              { label: "Fee History", to: "/fee_payment/history" },
+            ]}
+          />
+          <TopNavDropdown
+            icon={FaBus}
+            label="Transport"
+            items={[
+              { label: "New Transport", to: "/transport/newTransport" },
+              { label: "Transport Users", to: "/transport/users" },
+            ]}
+          />
+          <NavLink to="/exam" icon={RiFileEditFill} label="Exam" />
+          <NavLink to="/activity" icon={FaStar} label="Activity" />
+          <TopNavDropdown
+            icon={IoSettingsOutline}
+            label="Admin"
+            items={[
+              { label: "User Management", to: "/admin/users" },
+              { label: "Settings", to: "/admin/settings" },
+            ]}
+          />
+        </Nav>
+        <div
+          className="d-flex align-items-center gap-3"
+          style={{ border: "2px solid red" }}
+        >
+          <AccountDropdown />
+          <BsButton
+            variant="light"
+            className="d-lg-none"
+            onClick={() => setShowSidebar(true)}
+          >
+            <FaBars />
+          </BsButton>
         </div>
+      </Navbar>
+      <Offcanvas
+        show={showSidebar}
+        onHide={() => setShowSidebar(false)}
+        placement="end"
+      >
+        <Offcanvas.Header closeButton>
+          <Offcanvas.Title>Navigation</Offcanvas.Title>
+        </Offcanvas.Header>
+        <Offcanvas.Body>
+          <Nav className="flex-column">
+            <Nav.Link
+              as={Link}
+              to="/dashboard"
+              onClick={() => setShowSidebar(false)}
+            >
+              <FaHome /> Dashboard
+            </Nav.Link>
+            <SidebarAccordion
+              icon={MdAdd}
+              label="Admissions"
+              items={[
+                { label: "New Admission", to: "/admission/new" },
+                { label: "Admission List", to: "/admission/list" },
+              ]}
+              onClose={() => setShowSidebar(false)}
+            />
+            <SidebarAccordion
+              icon={FaSuitcase}
+              label="Fee"
+              items={[
+                { label: "Pay Fees", to: "/fee_payment/pay" },
+                { label: "Fee History", to: "/fee_payment/history" },
+              ]}
+              onClose={() => setShowSidebar(false)}
+            />
+            <SidebarAccordion
+              icon={FaBus}
+              label="Transport"
+              items={[
+                { label: "New Transport", to: "/transport/newTransport" },
+                { label: "Transport Users", to: "/transport/users" },
+              ]}
+              onClose={() => setShowSidebar(false)}
+            />
+            <Nav.Link
+              as={Link}
+              to="/exam"
+              onClick={() => setShowSidebar(false)}
+            >
+              <RiFileEditFill /> Exam
+            </Nav.Link>
+            <Nav.Link
+              as={Link}
+              to="/activity"
+              onClick={() => setShowSidebar(false)}
+            >
+              <FaStar /> Activity
+            </Nav.Link>
+            <SidebarAccordion
+              icon={IoSettingsOutline}
+              label="Admin"
+              items={[
+                { label: "User Management", to: "/admin/users" },
+                { label: "Settings", to: "/admin/settings" },
+              ]}
+              onClose={() => setShowSidebar(false)}
+            />
+            <SidebarAccordion
+              icon={FaUser}
+              label="Account"
+              items={[
+                { label: "Profile", to: "/profile" },
+                {
+                  label: "Logout",
+                  to: "/",
+                  onClick: handleLogout,
+                },
+              ]}
+              onClose={() => setShowSidebar(false)}
+            />
+          </Nav>
+        </Offcanvas.Body>
+      </Offcanvas>
+      <div className="container-fluid my-4">
         <Outlet />
       </div>
     </div>
